@@ -1,7 +1,8 @@
+import os
+
 import requests
 import json
 from datetime import datetime
-
 
 import config
 
@@ -11,7 +12,27 @@ def get_request(url):
 
 
 def post_request(url, data):
-    return requests.post(url, headers=config.headers, json=data)
+    return requests.post(url, headers=config.headers, json=data).content
+
+
+def get_attrs_for_download(passport_id, certificate_id):
+    return {"docs": [
+        {
+            "type": "idents",
+            "id": passport_id,
+            "name_category": "idents",
+            "name_type": "Паспорт гражданина Российской Федерации",
+            "document_name": "Паспорт гражданина Российской Федерации"
+        },
+        {
+            "type": "docs",
+            "id": certificate_id,
+            "name_category": "docs",
+            "name_type": "Аттестат о среднем общем образовании",
+            "document_name": "Аттестат о среднем общем образовании"
+        }
+    ]
+    }
 
 
 class SuperService:
@@ -36,11 +57,12 @@ class SuperService:
             entrant.get_info_from_contracts()
             entrant.get_info_from_achievements()
             entrant.get_info_from_others()
+            entrant.get_info_from_applications()
 
-            attrs = dir(entrant)
-
-            for i in range(26, len(attrs)):
-                print(attrs[i], entrant.__getattribute__(attrs[i]))
+            # attrs = dir(entrant)
+            #
+            # for i in range(26, len(attrs)):
+            #     print(attrs[i], entrant.__getattribute__(attrs[i]))
 
 
 class Entrant:
@@ -52,6 +74,7 @@ class Entrant:
         self.has_more_than_one_passport = False
         self.has_other_passport = False
         self.has_other_certificate = False
+        self.has_target_applications = False
 
         self.name = None
         self.surname = None
@@ -78,6 +101,7 @@ class Entrant:
         self.passports = []
         self.exams = []
         self.certificates = []
+        self.applications = []
 
     def get_info_from_main(self):
         info = get_request(config.entrant_main_url.format(self.id))['data']
@@ -195,24 +219,75 @@ class Entrant:
             self.has_more_than_one_certificate = True
 
     def get_info_from_applications(self):
+        directory_name = self.surname + '_' + self.name + '_' + self.patronymic
+        if not os.path.exists("applications\\" + directory_name):
+            os.mkdir("applications\\" + directory_name)
+
         info = get_request(url=config.entrant_applications_url.format(self.id))['data']
+        print('==============' + directory_name + '============')
         for app in info:
             application_id = app['id']
             application = get_request(url=config.entrant_application_main_url.format(application_id))['data']
             application_changed = application['application']['changed']
-            application_id_status = application
+            application_id_status = application['application']['id_status']
+            application_name_status = application['application']['name_status']
+
+            application_competitive_id = application['competitive']['id']
+
+            competitive = get_request(url=config.entrant_competitive_url.format(application_competitive_id))['data']
+            application_competitive_id_education_source = competitive['id_education_source']
+            application_competitive_id_direction = competitive['id_direction']
+            application_competitive_uid = competitive['uid']
+            # целевое
+            if application_competitive_id_education_source == 4:
+                self.has_target_applications = True
+            application_competitive_name = competitive['name']
+            application_competitive_id_education_level = competitive['id_education_level']
+            application_competitive_name_education_level = competitive['name_education_level']
+            application = Application(application_id, application_changed, application_id_status,
+                                      application_name_status, application_competitive_id_education_source,
+                                      application_competitive_id, application_competitive_id_direction,
+                                      application_competitive_uid, self.has_target_applications,
+                                      application_competitive_name, application_competitive_id_education_level,
+                                      application_competitive_name_education_level)
+
+            self.applications.append(application)
+
+            for passport in self.passports:
+                for certificate in self.certificates:
+                    pdf = post_request(url=config.entrant_competitive_download_url.format(application_id),
+                                       data=get_attrs_for_download(passport.id, certificate.id))
+
+                    start = application_competitive_name.find(' ') + 1
+                    end = application_competitive_name.find('(') - 1
+                    file_name = application_competitive_name[start:end]
+                    count = 1
+                    new_name = file_name
+                    while os.path.exists('applications\\' + new_name + '.pdf'):
+                        new_name = file_name + str(count)
+                        count += 1
+                    file_name = new_name
+
+                    file_path = "applications\\{0}\\{1}".format(directory_name, file_name)
+
+                    if os.path.exists(file_path + '.pdf'):
+                        file_path += str(certificate.id)
+
+                    print(application_competitive_name)
+                    with open(file_path + ".pdf", 'wb') as file:
+                        file.write(pdf)
 
 
 class Passport:
-    def __init__(self, doc_id, doc_series, doc_number, doc_organization, doc_subdivision_code, doc_issue_date,
-                 id_entrant):
-        self.doc_id = doc_id
-        self.doc_series = doc_series
-        self.doc_number = doc_number
-        self.doc_organization = doc_organization
-        self.doc_subdivision_code = doc_subdivision_code
-        self.doc_issue_date = doc_issue_date
-        self.id_entrant = id_entrant
+    def __init__(self, id, series, number, organization, subdivision_code, issue_date,
+                 entrant_id):
+        self.id = id
+        self.series = series
+        self.number = number
+        self.organization = organization
+        self.subdivision_code = subdivision_code
+        self.issue_date = issue_date
+        self.entrant_id = entrant_id
 
 
 class ExamResult:
@@ -237,46 +312,24 @@ class Certificate:
         self.entrant_id = entrant_id
 
 
-# entrant = Entrant(8497)
-# entrant.get_info_from_main()
-# entrant.get_info_from_identification()
-# entrant.get_info_from_contracts()
-# entrant.get_info_from_achievements()
-# entrant.get_info_from_others()
-#
-# dir = dir(entrant)
-#
-# for i in range(26, len(dir)):
-#     print(dir[i], entrant.__getattribute__(dir[i]))
+class Application:
+    def __init__(self, id, date_changed, id_status, name_status, competitive_id_education_source, competitive_id,
+                 competitive_id_direction, competitive_uid, is_target, competitive_name, competitive_id_education_level,
+                 competitive_name_education_level):
+        self.id = id
+        self.date_changed = date_changed
+        self.id_status = id_status
+        self.name_status = name_status
+        self.competitive_id_education_source = competitive_id_education_source
+        self.competitive_id = competitive_id
+        self.competitive_id_direction = competitive_id_direction
+        self.competitive_uid = competitive_uid
+        self.is_target = is_target
+        self.competitive_name = competitive_name
+        self.competitive_id_education_level = competitive_id_education_level
+        self.competitive_name_education_level = competitive_name_education_level
 
-#
-# if __name__ == '__main__':
-#     ss = SuperService()
-#     ss.main()
 
-
-# page = 1
-# output_dict = json.loads(get_request(url.format(page)).text)
-# while output_dict['data'] != []:
-#     print(output_dict)
-#     for i in output_dict['data']:
-#         print(i)
-#     page += 1
-#     output_dict = json.loads(get_request(url.format(page)).text)
-#
-# data = {"docs":[{"type":"idents","id":55193,"name_category":"idents","name_type":"Паспорт гражданина Российской Федерации","document_name":"Паспорт гражданина Российской Федерации"},{"type":"docs","id":572969,"name_category":"docs","name_type":"Аттестат о среднем общем образовании","document_name":"Аттестат о среднем общем образовании"}]}
-#
-# # print(get_request(url=config.entrant.format(id)))
-#
-# pdf = post_request(url='http://10.3.60.2/api/applications/159442/generate/pdf', data=data).content
-# print(pdf)
-#
-# with open("file.txt", 'wb') as file:
-#     file.write(pdf)
-
-# entrant = Entrant(27609)
-# entrant.get_info_from_main()
-# dir = dir(entrant)
-#
-# for i in range(26, len(dir)):
-#     print(dir[i], entrant.getattribute(dir[i]))
+if __name__ == '__main__':
+    ss = SuperService()
+    ss.main()

@@ -56,10 +56,15 @@ entrant_applications_url = url + 'api/entrants/{}/applications'
 
 # страница заявления main
 # {} = application id
-entrant_application_main_url = url + 'api/applications/7452/main'
+entrant_application_main_url = url + 'api/applications/{}/main'
 
+# окно направления
+# {} = competitive id
+entrant_competitive_url = url + 'api/competitive/{}/main'
 
-
+# скачивание
+# {} = document id
+entrant_competitive_download_url = url + 'api/applications/{}/generate/pdf'
 
 
 subjects_dict = {
@@ -87,4 +92,27 @@ subjects_dict = {
     '10': 'Физика',
     '188': 'Французский язык (устный)',
     '11': 'Химия',
+}
+
+education_level_dict = {
+    2: "Бакалавриат",
+    3: "Специалитет",
+}
+
+download_data = {"docs": [
+            {
+                "type": "idents",
+                "id": None,
+                "name_category": "idents",
+                "name_type": "Паспорт гражданина Российской Федерации",
+                "document_name": "Паспорт гражданина Российской Федерации"
+            },
+            {
+                "type": "docs",
+                "id": None,
+                "name_category": "docs",
+                "name_type": "Аттестат о среднем общем образовании",
+                "document_name": "Аттестат о среднем общем образовании"
+            }
+        ]
 }
