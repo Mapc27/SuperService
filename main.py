@@ -15,7 +15,7 @@ def post_request(url, data):
 
 
 class SuperService:
-    def init(self, page, count_page):
+    def __init__(self, page, count_page):
         self.page = page
         self.count_page = count_page
 
@@ -24,9 +24,36 @@ class SuperService:
 
 
 class Entrant:
-    def init(self, id):
+    def __init__(self, id):
         self.id = id
-        self.with_hands = False
+        self.has_more_than_one_doc = False
+        self.has_achievements = False
+        self.has_contracts = False
+        self.has_other_doc = False
+
+        self.name = None
+        self.surname = None
+        self.patronymic = None
+
+        self.birthday = None
+        self.snils = None
+        self.birthplace = None
+        self.email = None
+        self.fact_address = None
+        self.id_gender = None
+        self.name_gender = None
+        self.phone = None
+        # registration_address
+        self.registration_address_id_region = None
+        self.registration_address_city = None
+        # район
+        self.registration_address_area = None
+        # городской округ
+        self.registration_address_city_area = None
+        self.registration_address_city_street = None
+        self.registration_address_name_region = None
+
+        self.passport = None
 
     def get_info_from_main(self):
         info = get_request(config.entrant_main_url.format(self.id))['data']
@@ -65,7 +92,7 @@ class Entrant:
                 passport_count += 1
                 passport = doc
             if passport_count > 1:
-                self.with_hands = True
+                self.has_more_than_one_doc = True
                 break
 
         if passport_count == 1:
@@ -82,9 +109,34 @@ class Entrant:
             passport = Passport(doc_id, doc_series, doc_number, doc_organization, doc_subdivision_code, doc_issue_date,
                                 entrant_id)
 
+            self.passport = passport
+
+    def get_info_from_contracts(self):
+        info = get_request(url=config.entrant_contracts_url.format(self.id))['data']
+        if not info:
+            self.has_contracts = True
+
+    def get_info_from_achievements(self):
+        info = get_request(url=config.entrant_achievements_url.format(self.id))['data']
+        if not info:
+            self.has_achievements = True
+
+    def get_info_from_others(self):
+        info = get_request(url=config.entrant_others_url.format(self.id))['data']['docs']
+        for doc in info:
+            # результат егэ
+            if doc['id_document_type'] == 3:
+                mark =
+                subject =
+            elif doc['id_document_type'] == 7:
+                pass
+            else:
+                self.has_other_doc = True
+
+
 
 class Passport:
-    def init(self, doc_id, doc_series, doc_number, doc_organization, doc_subdivision_code, doc_issue_date,
+    def __init__(self, doc_id, doc_series, doc_number, doc_organization, doc_subdivision_code, doc_issue_date,
                  id_entrant):
         self.doc_id = doc_id
         self.doc_series = doc_series
@@ -94,7 +146,27 @@ class Passport:
         self.doc_issue_date = datetime.strptime(doc_issue_date, config.datetime_format)
         self.id_entrant = id_entrant
 
-print(get_request(url=config.entrant_edit_url.format(55428)))
+
+class ExamResult:
+    def __init__(self):
+        self.
+
+print(get_request(url=config.entrant_others_url.format(10688)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -114,7 +186,7 @@ print(get_request(url=config.entrant_edit_url.format(55428)))
 #
 # data = {"docs":[{"type":"idents","id":55193,"name_category":"idents","name_type":"Паспорт гражданина Российской Федерации","document_name":"Паспорт гражданина Российской Федерации"},{"type":"docs","id":572969,"name_category":"docs","name_type":"Аттестат о среднем общем образовании","document_name":"Аттестат о среднем общем образовании"}]}
 #
-# # print(get_request(url=config.abiturient_main_url.format(id)))
+# # print(get_request(url=config.entrant.format(id)))
 #
 # pdf = post_request(url='http://10.3.60.2/api/applications/159442/generate/pdf', data=data).content
 # print(pdf)

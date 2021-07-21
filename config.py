@@ -1,3 +1,5 @@
+DEBUG = True
+
 headers = {
     'Accept': 'application/json, text/plain, */*',
     'Accept-Encoding': 'gzip, deflate',
@@ -8,28 +10,36 @@ headers = {
 
 datetime_format = "%Y-%m-%dT%H:%M:%SZ"
 
-entrants_list_url = 'http://10.3.60.2/api/entrants/list?page={}&limit=20'
+url = 'http://10.3.60.2/'
+if DEBUG:
+    url = 'http://85.142.162.4:8032/'
+    headers['Cookie'] = 'login=aabibik@kpfu.ru; password=6ee4eecab075e7ee0e838f9' \
+                        '0cf681e5ef7253960d86a1e62caf96fd36cb9a943; current-org=1279'
+
+
+# 	"Аттестат о среднем (полном) общем образовании" id = 7
+entrants_list_url = url + 'api/entrants/list?page={}&limit=20'
 
 # страница абитуриента
 # {} = entrant id
-entrant_main_url = 'http://10.3.60.2/api/entrants/{}/main'
+entrant_main_url = url + 'api/entrants/{}/main'
 
 # вкладка Удостоверяющие личность
 # {} = entrant id
-entrant_identification_url = 'http://10.3.60.2/api/entrants/{}/docs/short?categories=identification'
+entrant_identification_url = url + 'api/entrants/{}/docs/short?categories=identification'
 
 # окно паспорта
 # {} = document id
-entrant_edit_url = 'http://10.3.60.2/api/docs/idents/{}/edit'
+entrant_edit_url = url + 'api/docs/idents/{}/edit'
 
 # вкладка Договор о целевом обучении
 # {} = entrant id
-entrant_contracts_url = 'http://10.3.60.2/api/entrants/{}/contracts/list'
+entrant_contracts_url = url + 'api/entrants/{}/contracts/list'
 
 # вкладка Индивидуальные достижения
 # {} = entrant id
-entrant_achievements_url = 'http://10.3.60.2/api/entrants/{}/achievements/list'
+entrant_achievements_url = url + 'api/entrants/{}/achievements/list'
 
 # вкладка Другие
 # {} = entrant id
-entrant_others_url = 'http://10.3.60.2/api/entrants/{}/docs/short?no_categories=identification'
+entrant_others_url = url + 'api/entrants/{}/docs/short?no_categories=identification'
