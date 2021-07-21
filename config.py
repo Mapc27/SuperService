@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 
 headers = {
     'Accept': 'application/json, text/plain, */*',
@@ -9,6 +9,8 @@ headers = {
 }
 
 datetime_format = "%Y-%m-%dT%H:%M:%SZ"
+datetime_format_for_application = "%Y-%m-%dT%H:%M:%SZ"
+"2021-07-15T17:47:50.015127+03:00"
 
 url = 'http://10.3.60.2/'
 if DEBUG:
@@ -43,3 +45,46 @@ entrant_achievements_url = url + 'api/entrants/{}/achievements/list'
 # вкладка Другие
 # {} = entrant id
 entrant_others_url = url + 'api/entrants/{}/docs/short?no_categories=identification'
+
+# вкладка другие -> документ
+# {} = document id
+entrant_others_doc_url = url + 'api/docs/{}/edit'
+
+# вкладка заявления
+# {} = entrant id
+entrant_applications_url = url + 'api/entrants/{}/applications'
+
+# страница заявления main
+# {} = application id
+entrant_application_main_url = url + 'api/applications/7452/main'
+
+
+
+
+
+subjects_dict = {
+    '186': 'Английский язык (устный)',
+    '4': 'Биология',
+    '5': 'География',
+    '184': 'Изложение',
+    '24': 'Иностранный язык - английский',
+    '14': 'Иностранный язык - испанский',
+    '68': 'Иностранный язык - китайский',
+    '12': 'Иностранный язык - немецкий',
+    '13': 'Иностранный язык - французский',
+    '3': 'Информатика и ИКТ',
+    '189': 'Испанский язык (устный)',
+    '7': 'История',
+    '190': 'Китайский язык (устный)',
+    '38': 'Крымско-татарский язык',
+    '8': 'Литература',
+    '2': 'Математика',
+    '185': 'Математика базовая',
+    '187': 'Немецкий язык (устный)',
+    '9': 'Обществознание',
+    '1': 'Русский язык',
+    '183': 'Сочинение',
+    '10': 'Физика',
+    '188': 'Французский язык (устный)',
+    '11': 'Химия',
+}
