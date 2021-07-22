@@ -9,7 +9,8 @@ create table entrant
     phone      varchar,
     mail       varchar,
     snils      varchar,
-    hostel     varchar
+    hostel     varchar,
+    is_hard    varchar
 );
 create table passport
 (
@@ -47,7 +48,9 @@ create table address
     f_area        varchar,
     f_city_area   varchar,
     f_city        varchar,
-    f_street      varchar
+    f_street      varchar,
+
+    birthplace varchar
 
 );
 create table application
@@ -60,6 +63,6 @@ create table application
     target       varchar,
     subdiv_name  varchar,
     id_edu_level varchar,
-    edu_level    varchar,
+    edu_level    varchar
 )
 

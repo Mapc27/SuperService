@@ -1,4 +1,4 @@
-DEBUG = False
+DEBUG = True
 
 headers = {
     'Accept': 'application/json, text/plain, */*',
