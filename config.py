@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 
 headers = {
     'Accept': 'application/json, text/plain, */*',
@@ -144,6 +144,10 @@ entrant_competitive_programs_url = url + 'api/competitive/{}/programs'
 # {} = document id
 entrant_competitive_download_url = url + 'api/applications/{}/generate/pdf'
 
+# set status
+# {} = application id
+entrant_application_set_status_url = url + 'api/applications/{}/status/set'
+
 
 subjects_dict = {
     '186': 'Английский язык (устный)',
@@ -193,4 +197,85 @@ download_data = {"docs": [
                 "document_name": "Аттестат о среднем общем образовании"
             }
         ]
+}
+
+status_data = {
+      "done": True,
+      "data": [
+        {
+          "code": "entrant_agreed_call_off",
+          "id": 13,
+          "name": "Отзыв согласия"
+        },
+        {
+          "code": "new",
+          "id": 1,
+          "name": "Новое"
+        },
+        {
+          "code": "entrant_edit",
+          "id": 5,
+          "name": "Редактирование профиля"
+        },
+        {
+          "code": "new_cheking",
+          "id": 2,
+          "name": "Принято к рассмотрению"
+        },
+        {
+          "code": "additional_info_wait",
+          "id": 3,
+          "name": "Запрос дополнительных сведений"
+        },
+        {
+          "code": "check_date_vi",
+          "id": 6,
+          "name": "Назначена дата ВИ"
+        },
+        {
+          "code": "current_date_vi",
+          "id": 7,
+          "name": "Выбор даты ВИ"
+        },
+        {
+          "code": "in_competition",
+          "id": 8,
+          "name": "Участвует в конкурсе"
+        },
+        {
+          "code": "entrant_agreed",
+          "id": 9,
+          "name": "Согласие"
+        },
+        {
+          "code": "out_competition",
+          "id": 10,
+          "name": "Не прошло по конкурсу"
+        },
+        {
+          "code": "in_order",
+          "id": 11,
+          "name": "Включено в приказ на зачисление"
+        },
+        {
+          "code": "app_edit",
+          "id": 14,
+          "name": "Отказ от зачисления"
+        },
+        {
+          "code": "app_call_off",
+          "id": 15,
+          "name": "Отзыв заявления"
+        },
+        {
+          "code": "add_education",
+          "id": 16,
+          "name": "Согласие/Документ об образовании"
+        },
+        {
+          "code": "service_denied",
+          "id": 12,
+          "name": "Отклонено"
+        }
+      ]
 }
