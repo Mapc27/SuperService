@@ -5,7 +5,6 @@ from datetime import datetime
 import requests
 
 import config
-import db_insertions
 
 
 def get_request(url):
@@ -65,18 +64,18 @@ class SuperService:
                 snils = entrant.snils[0:3] + ' ' + entrant.snils[3:6] + ' ' + entrant.snils[6:9] + ' '\
                         + entrant.snils[9:11]
 
-            # ent = {
-            #     'surname': entrant.surname,
-            #     'name': entrant.name,
-            #     'patronymic': entrant.patronymic,
-            #     'birthday': entrant.birthday.strftime("%d.%m.%Y"),
-            #     'birthplace': entrant.birthplace,
-            #     'gender': entrant.name_gender,
-            #     'phone': entrant.phone,
-            #     'email': entrant.email,
-            #     'snils': entrant.snils,
-            #     'hostel': entrant.need_hostel,
-            # }
+            ent = {
+                'surname': entrant.surname,
+                'name': entrant.name,
+                'patronymic': entrant.patronymic,
+                'birthday': entrant.birthday.strftime("%d.%m.%Y"),
+                'birthplace': entrant.birthplace,
+                'gender': entrant.name_gender,
+                'phone': entrant.phone,
+                'email': entrant.email,
+                'snils': entrant.snils,
+                'hostel': entrant.need_hostel,
+            }
 
             passport = {'passport': entrant.passports}
 
@@ -99,9 +98,6 @@ class SuperService:
             }
 
             applications = {"apps": entrant.applications}
-
-            db_insertions.ins_pers(entrant)
-            db_insertions.ins_pass(passport['passport'], db_insertions.get_entrant_id(entrant))
 
 
 class Entrant:
