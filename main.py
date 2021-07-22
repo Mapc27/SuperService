@@ -1,7 +1,6 @@
 import os
 import json
 from datetime import datetime
-# import strftime as strftime
 
 
 import requests
@@ -112,17 +111,47 @@ class SuperService:
             wb = openpyxl.Workbook()
             ws = wb.active
             ws.append([
-                    entrant.surname, entrant.name, entrant.patronymic, entrant.birthday.strftime("%d.%m.%Y"), entrant.birthplace,
-                    entrant.name_gender, entrant.phone, entrant.email, passport_series, passport_number,
-                    passport_issue_date, passport_organization, passport_subdivision_code, snils, entrant.birthplace,
-                    entrant.registration_address_index, entrant.registration_address_name_region,
-                    entrant.registration_address_area, entrant.registration_address_city_area,
-                    entrant.registration_address_city, entrant.registration_address_street,
-                    entrant.fact_address_index, entrant.fact_address_name_region,
-                    entrant.fact_address_area, entrant.fact_address_city_area,
-                    entrant.fact_address_city, entrant.fact_address_street, certificate_organization,
-                    certificate_series, certificate_number, certificate_issue_date, entrant.need_hostel,
-                     ])
+                entrant.surname,
+                entrant.name,
+                entrant.patronymic,
+                entrant.birthday.strftime("%d.%m.%Y"),
+                entrant.birthplace,
+                entrant.name_gender,
+                entrant.phone,
+                entrant.email,
+
+                passport_series,
+                passport_number,
+                passport_issue_date,
+                passport_organization,
+                passport_subdivision_code,
+
+                snils,
+                entrant.birthplace,
+
+                entrant.registration_address_index,
+                entrant.registration_address_name_region,
+                entrant.registration_address_area,
+                entrant.registration_address_city_area,
+                entrant.registration_address_city,
+                entrant.registration_address_street,
+
+                entrant.fact_address_index,
+                entrant.fact_address_name_region,
+                entrant.fact_address_area,
+                entrant.fact_address_city_area,
+                entrant.fact_address_city,
+                entrant.fact_address_street,
+
+                certificate_organization,
+                certificate_series,
+                certificate_number,
+                certificate_issue_date,
+
+                entrant.need_hostel,
+
+                entrant.applications
+                ])
 
             wb.save("data.xlsx")
 
@@ -313,7 +342,7 @@ class Entrant:
             os.mkdir("applications\\" + directory_name)
 
         info = get_request(url=config.entrant_applications_url.format(self.id))['data']
-        print('==============' + directory_name + '============')
+        print('============== ' + directory_name + ' ============')
         for app in info:
             application_id = app['id']
             application = get_request(url=config.entrant_application_main_url.format(application_id))['data']
@@ -334,6 +363,9 @@ class Entrant:
             application_competitive_id_education_level = competitive['id_education_level']
             application_competitive_name_education_level = competitive['name_education_level']
 
+            application_competitive_subdivision_name = \
+                get_request(url=config.entrant_competitive_programs_url.
+                            format(application_competitive_id))['data'][0]['subdivision_name']
             # общежитие
             if get_request(url=config.entrant_application_info_url.format(application_id))['data']['need_hostel']:
                 self.need_hostel = True
@@ -408,8 +440,8 @@ class Certificate:
 
 class Application:
     def __init__(self, id, date_changed, id_status, name_status, competitive_id_education_source, competitive_id,
-                 competitive_id_direction, competitive_uid, is_target, competitive_name, competitive_id_education_level,
-                 competitive_name_education_level):
+                 competitive_id_direction, competitive_uid, is_target, competitive_subdivision_name, competitive_name,
+                 competitive_id_education_level, competitive_name_education_level):
         self.id = id
         self.date_changed = date_changed
         self.id_status = id_status
@@ -419,6 +451,7 @@ class Application:
         self.competitive_id_direction = competitive_id_direction
         self.competitive_uid = competitive_uid
         self.is_target = is_target
+        self.competitive_subdivision_name = competitive_subdivision_name
         self.competitive_name = competitive_name
         self.competitive_id_education_level = competitive_id_education_level
         self.competitive_name_education_level = competitive_name_education_level
