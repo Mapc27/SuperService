@@ -1,4 +1,4 @@
-DEBUG = False
+DEBUG = True
 
 headers = {
     'Accept': 'application/json, text/plain, */*',
@@ -66,6 +66,9 @@ entrant_competitive_url = url + 'api/competitive/{}/main'
 # {} = document id
 entrant_competitive_download_url = url + 'api/applications/{}/generate/pdf'
 
+# Для общежития
+# {} = application id
+entrant_application_info_url = url + 'api/applications/29210/info'
 
 subjects_dict = {
     '186': 'Английский язык (устный)',

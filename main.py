@@ -1,8 +1,11 @@
 import os
-
-import requests
 import json
 from datetime import datetime
+# import strftime as strftime
+
+
+import requests
+import openpyxl
 
 import config
 
@@ -59,10 +62,69 @@ class SuperService:
             entrant.get_info_from_others()
             entrant.get_info_from_applications()
 
-            # attrs = dir(entrant)
-            #
-            # for i in range(26, len(attrs)):
-            #     print(attrs[i], entrant.__getattribute__(attrs[i]))
+            passport_series = ''
+            passport_number = ''
+            passport_issue_date = ''
+            passport_organization = ''
+            passport_subdivision_code = ''
+            first = True
+            for passport in entrant.passports:
+                if not first:
+                    passport_series += ' | '
+                    passport_number += ' | '
+                    passport_issue_date += ' | '
+                    passport_organization += ' | '
+                    passport_subdivision_code += ' | '
+                else:
+                    first = False
+                passport_series += str(passport.series)
+                passport_number += str(passport.number)
+                # passport_issue_date += str(passport.issue_date.day) + '.' + str(passport.issue_date.month) + '.' +\
+                #                        str(passport.issue_date.year)
+                passport_issue_date += passport.issue_date.strftime("%d.%m.%Y")
+                passport_organization += str(passport.organization)
+                passport_subdivision_code += str(passport.subdivision_code)
+
+            certificate_series = ''
+            certificate_number = ''
+            certificate_issue_date = ''
+            certificate_organization = ''
+            first = True
+            for certificate in entrant.certificates:
+                if not first:
+                    certificate_series += ' | '
+                    certificate_number += ' | '
+                    certificate_issue_date += ' | '
+                    certificate_organization += ' | '
+                else:
+                    first = False
+                certificate_series += str(certificate.series)
+                certificate_number += str(certificate.number)
+                # certificate_issue_date += str(certificate.issue_date.day) + '.' + str(certificate.issue_date.month) +\
+                #                           '.' + str(certificate.issue_date.year)
+                certificate_issue_date += certificate.issue_date.strftime("%d.%m.%Y")
+                certificate_organization += str(certificate.organization)
+
+            if entrant.snils is not None:
+                snils = entrant.snils[0:3] + ' ' + entrant.snils[3:6] + ' ' + entrant.snils[6:9] + ' '\
+                        + entrant.snils[9:11]
+
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.append([
+                    entrant.surname, entrant.name, entrant.patronymic, entrant.birthday.strftime("%d.%m.%Y"), entrant.birthplace,
+                    entrant.name_gender, entrant.phone, entrant.email, passport_series, passport_number,
+                    passport_issue_date, passport_organization, passport_subdivision_code, snils, entrant.birthplace,
+                    entrant.registration_address_index, entrant.registration_address_name_region,
+                    entrant.registration_address_area, entrant.registration_address_city_area,
+                    entrant.registration_address_city, entrant.registration_address_street,
+                    entrant.fact_address_index, entrant.fact_address_name_region,
+                    entrant.fact_address_area, entrant.fact_address_city_area,
+                    entrant.fact_address_city, entrant.fact_address_street, certificate_organization,
+                    certificate_series, certificate_number, certificate_issue_date, entrant.need_hostel,
+                     ])
+
+            wb.save("data.xlsx")
 
 
 class Entrant:
@@ -84,19 +146,32 @@ class Entrant:
         self.snils = None
         self.birthplace = None
         self.email = None
-        self.fact_address = None
         self.id_gender = None
         self.name_gender = None
         self.phone = None
         # registration_address
+        self.registration_address_index = None
         self.registration_address_id_region = None
         self.registration_address_city = None
         # район
         self.registration_address_area = None
         # городской округ
         self.registration_address_city_area = None
-        self.registration_address_city_street = None
+        self.registration_address_street = None
         self.registration_address_name_region = None
+
+        # fact address
+        self.fact_address_index = None
+        self.fact_address_id_region = None
+        self.fact_address_city = None
+        # район
+        self.fact_address_area = None
+        # городской округ
+        self.fact_address_city_area = None
+        self.fact_address_street = None
+        self.fact_address_name_region = None
+
+        self.need_hostel = False
 
         self.passports = []
         self.exams = []
@@ -115,19 +190,33 @@ class Entrant:
         self.snils = info['snils']
         self.birthplace = info['birthplace']
         self.email = info['email']
-        self.fact_address = info['fact_address']
         self.id_gender = info['id_gender']
         self.name_gender = info['name_gender']
         self.phone = info['phone']
+
         # registration_address
-        self.registration_address_id_region = info['registration_address']['id_region']
-        self.registration_address_city = info['registration_address']['city']
-        # район
-        self.registration_address_area = info['registration_address']['area']
-        # городской округ
-        self.registration_address_city_area = info['registration_address']['city_area']
-        self.registration_address_city_street = info['registration_address']['street']
-        self.registration_address_name_region = info['registration_address']['name_region']
+        if info['registration_address'] is not None:
+            self.registration_address_index = info['registration_address']['index_addr']
+            self.registration_address_id_region = info['registration_address']['id_region']
+            self.registration_address_city = info['registration_address']['city']
+            # район
+            self.registration_address_area = info['registration_address']['area']
+            # городской округ
+            self.registration_address_city_area = info['registration_address']['city_area']
+            self.registration_address_street = info['registration_address']['street']
+            self.registration_address_name_region = info['registration_address']['name_region']
+
+        # fact address
+        if info['fact_address'] is not None:
+            self.fact_address_index = info['fact_address']['index_addr']
+            self.fact_address_id_region = info['fact_address']['id_region']
+            self.fact_address_city = info['fact_address']['city']
+            # район
+            self.fact_address_area = info['fact_address']['area']
+            # городской округ
+            self.fact_address_city_area = info['fact_address']['city_area']
+            self.fact_address_street = info['fact_address']['street']
+            self.fact_address_name_region = info['fact_address']['name_region']
 
     def get_info_from_identification(self):
         info = get_request(config.entrant_identification_url.format(self.id))['data'][0]['docs']
@@ -244,6 +333,11 @@ class Entrant:
             application_competitive_name = competitive['name']
             application_competitive_id_education_level = competitive['id_education_level']
             application_competitive_name_education_level = competitive['name_education_level']
+
+            # общежитие
+            if get_request(url=config.entrant_application_info_url.format(application_id))['data']['need_hostel']:
+                self.need_hostel = True
+
             application = Application(application_id, application_changed, application_id_status,
                                       application_name_status, application_competitive_id_education_source,
                                       application_competitive_id, application_competitive_id_direction,
@@ -301,11 +395,11 @@ class ExamResult:
 
 
 class Certificate:
-    def __init__(self, id, series, number, org, issue_date, is_sge, entrant_id):
+    def __init__(self, id, series, number, organization, issue_date, is_sge, entrant_id):
         self.id = id
         self.series = series
         self.number = number
-        self.org = org
+        self.organization = organization
         self.issue_date = issue_date
         # Среднее общее образование
         self.is_sge = is_sge
