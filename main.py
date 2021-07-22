@@ -2,9 +2,7 @@ import os
 import json
 from datetime import datetime
 
-
 import requests
-import openpyxl
 
 import config
 
@@ -60,105 +58,53 @@ class SuperService:
             entrant.get_info_from_achievements()
             entrant.get_info_from_others()
             entrant.get_info_from_applications()
-
-            passport_series = ''
-            passport_number = ''
-            passport_issue_date = ''
-            passport_organization = ''
-            passport_subdivision_code = ''
-            first = True
-            for passport in entrant.passports:
-                if not first:
-                    passport_series += ' | '
-                    passport_number += ' | '
-                    passport_issue_date += ' | '
-                    passport_organization += ' | '
-                    passport_subdivision_code += ' | '
-                else:
-                    first = False
-                passport_series += str(passport.series)
-                passport_number += str(passport.number)
-                # passport_issue_date += str(passport.issue_date.day) + '.' + str(passport.issue_date.month) + '.' +\
-                #                        str(passport.issue_date.year)
-                passport_issue_date += passport.issue_date.strftime("%d.%m.%Y")
-                passport_organization += str(passport.organization)
-                passport_subdivision_code += str(passport.subdivision_code)
-
-            certificate_series = ''
-            certificate_number = ''
-            certificate_issue_date = ''
-            certificate_organization = ''
-            first = True
-            for certificate in entrant.certificates:
-                if not first:
-                    certificate_series += ' | '
-                    certificate_number += ' | '
-                    certificate_issue_date += ' | '
-                    certificate_organization += ' | '
-                else:
-                    first = False
-                certificate_series += str(certificate.series)
-                certificate_number += str(certificate.number)
-                # certificate_issue_date += str(certificate.issue_date.day) + '.' + str(certificate.issue_date.month) +\
-                #                           '.' + str(certificate.issue_date.year)
-                certificate_issue_date += certificate.issue_date.strftime("%d.%m.%Y")
-                certificate_organization += str(certificate.organization)
+            entrant.get_trouble_status()
 
             if entrant.snils is not None:
                 snils = entrant.snils[0:3] + ' ' + entrant.snils[3:6] + ' ' + entrant.snils[6:9] + ' '\
                         + entrant.snils[9:11]
 
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.append([
-                entrant.surname,
-                entrant.name,
-                entrant.patronymic,
-                entrant.birthday.strftime("%d.%m.%Y"),
-                entrant.birthplace,
-                entrant.name_gender,
-                entrant.phone,
-                entrant.email,
+            ent = {
+                'surname': entrant.surname,
+                'name': entrant.name,
+                'patronymic': entrant.patronymic,
+                'birthday': entrant.birthday.strftime("%d.%m.%Y"),
+                'birthplace': entrant.birthplace,
+                'gender': entrant.name_gender,
+                'phone': entrant.phone,
+                'email': entrant.email,
+                'snils': entrant.snils,
+                'hostel': entrant.need_hostel,
+            }
 
-                passport_series,
-                passport_number,
-                passport_issue_date,
-                passport_organization,
-                passport_subdivision_code,
+            passport = {'passport': entrant.passports}
 
-                snils,
-                entrant.birthplace,
+            certificate = {'certificate': entrant.certificates}
 
-                entrant.registration_address_index,
-                entrant.registration_address_name_region,
-                entrant.registration_address_area,
-                entrant.registration_address_city_area,
-                entrant.registration_address_city,
-                entrant.registration_address_street,
+            address = {
+                'r_index': entrant.registration_address_index,
+                'r_region_name': entrant.registration_address_name_region,
+                'r_area': entrant.registration_address_area,
+                'r_cityA': entrant.registration_address_city_area,
+                'r_city': entrant.registration_address_city,
+                "r_street": entrant.registration_address_street,
 
-                entrant.fact_address_index,
-                entrant.fact_address_name_region,
-                entrant.fact_address_area,
-                entrant.fact_address_city_area,
-                entrant.fact_address_city,
-                entrant.fact_address_street,
+                'f_index': entrant.fact_address_index,
+                'f_region_name': entrant.fact_address_name_region,
+                'f_area': entrant.fact_address_area,
+                'f_cityA': entrant.fact_address_city_area,
+                'f_city': entrant.fact_address_city,
+                "f_street": entrant.fact_address_street,
+            }
 
-                certificate_organization,
-                certificate_series,
-                certificate_number,
-                certificate_issue_date,
-
-                entrant.need_hostel,
-
-                entrant.applications
-                ])
-
-            wb.save("data.xlsx")
+            applications = {"apps": entrant.applications}
 
 
 class Entrant:
     def __init__(self, id):
         self.id = id
+
+        self.has_trouble = False
         self.has_achievements = False
         self.has_contracts = False
         self.has_more_than_one_certificate = False
@@ -338,8 +284,15 @@ class Entrant:
 
     def get_info_from_applications(self):
         directory_name = self.surname + '_' + self.name + '_' + self.patronymic
-        if not os.path.exists("applications\\" + directory_name):
-            os.mkdir("applications\\" + directory_name)
+
+        new_name = directory_name
+        count = 1
+        while os.path.exists("applications\\" + new_name):
+            new_name = directory_name + '_' + str(count)
+            count += 1
+        directory_name = new_name
+
+        os.mkdir("applications\\" + directory_name)
 
         info = get_request(url=config.entrant_applications_url.format(self.id))['data']
         print('============== ' + directory_name + ' ============')
@@ -374,7 +327,8 @@ class Entrant:
                                       application_name_status, application_competitive_id_education_source,
                                       application_competitive_id, application_competitive_id_direction,
                                       application_competitive_uid, self.has_target_applications,
-                                      application_competitive_name, application_competitive_id_education_level,
+                                      application_competitive_subdivision_name, application_competitive_name,
+                                      application_competitive_id_education_level,
                                       application_competitive_name_education_level)
 
             self.applications.append(application)
@@ -402,6 +356,16 @@ class Entrant:
                     print(application_competitive_name)
                     with open(file_path + ".pdf", 'wb') as file:
                         file.write(pdf)
+
+    def get_trouble_status(self):
+        if any([self.has_achievements,
+                self.has_contracts,
+                self.has_more_than_one_certificate,
+                self.has_more_than_one_passport,
+                self.has_other_passport,
+                self.has_other_certificate,
+                self.has_target_applications]):
+            self.has_trouble = True
 
 
 class Passport:
@@ -442,19 +406,19 @@ class Application:
     def __init__(self, id, date_changed, id_status, name_status, competitive_id_education_source, competitive_id,
                  competitive_id_direction, competitive_uid, is_target, competitive_subdivision_name, competitive_name,
                  competitive_id_education_level, competitive_name_education_level):
-        self.id = id #
-        self.date_changed = date_changed #
+        self.id = id
+        self.date_changed = date_changed
         self.id_status = id_status
-        self.name_status = name_status #
+        self.name_status = name_status
         self.competitive_id_education_source = competitive_id_education_source
         self.competitive_id = competitive_id
         self.competitive_id_direction = competitive_id_direction
-        self.competitive_uid = competitive_uid #
-        self.is_target = is_target #
-        self.competitive_subdivision_name = competitive_subdivision_name #
-        self.competitive_name = competitive_name #
-        self.competitive_id_education_level = competitive_id_education_level #
-        self.competitive_name_education_level = competitive_name_education_level #
+        self.competitive_uid = competitive_uid
+        self.is_target = is_target
+        self.competitive_subdivision_name = competitive_subdivision_name
+        self.competitive_name = competitive_name
+        self.competitive_id_education_level = competitive_id_education_level
+        self.competitive_name_education_level = competitive_name_education_level
 
 
 if __name__ == '__main__':
