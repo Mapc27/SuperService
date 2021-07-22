@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from datetime import datetime
 
 import requests
@@ -13,7 +14,19 @@ def get_request(url):
 
 
 def post_request(url, data):
-    return requests.post(url, headers=config.headers, json=data).content
+    try:
+        return requests.post(url, headers=config.headers, json=data).content
+    except requests.exceptions.ProxyError:
+        time.sleep(5)
+        return requests.post(url, headers=config.headers, json=data).content
+
+
+# epgu for entrant
+# epgu for application
+# tag place
+# id конкурсной группы
+# reg date for application
+# competitive uid
 
 
 def get_attrs_for_download(passport_id, certificate_id):
@@ -38,7 +51,7 @@ def get_attrs_for_download(passport_id, certificate_id):
 
 class SuperService:
     def __init__(self):
-        self.page = 1
+        self.page = 80
         self.pages_count = self.get_pages_count()
 
     def get_pages_count(self):
@@ -61,18 +74,14 @@ class SuperService:
             entrant.get_info_from_applications()
             entrant.get_trouble_status()
 
-            # for key in dir(entrant):
-            #     try:
-            #         print(key, ' = ', entrant.__getattribute__(key))
-            #     except:
-            #         pass
-
+            entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
 
             db_insertions.ins_pers(entrant)
             db_insertions.ins_pass(entrant.passports, db_insertions.get_entrant_id(entrant))
             db_insertions.ins_cert(entrant.certificates, db_insertions.get_entrant_id(entrant))
             db_insertions.ins_address(entrant, db_insertions.get_entrant_id(entrant))
             db_insertions.ins_apps(entrant.applications, db_insertions.get_entrant_id(entrant))
+
 
 class Entrant:
     def __init__(self, id):
@@ -259,6 +268,8 @@ class Entrant:
     def get_info_from_applications(self):
         directory_name = self.surname + '_' + self.name + '_' + self.patronymic
 
+        if not os.path.exists('applications'):
+            os.mkdir('applications')
         new_name = directory_name
         count = 1
         while os.path.exists("applications\\" + new_name):
@@ -273,7 +284,10 @@ class Entrant:
         for app in info:
             application_id = app['id']
             application = get_request(url=config.entrant_application_main_url.format(application_id))['data']
-            application_changed = application['application']['changed']
+            registration_date = application['application']['registration_date']
+            registration_date = datetime.strptime(registration_date[0:registration_date.find('T')], config.date_format)
+            application_registration_date = registration_date
+            application_uid_epgu = app['uid_epgu']
             application_id_status = application['application']['id_status']
             application_name_status = application['application']['name_status']
 
@@ -297,12 +311,12 @@ class Entrant:
             if get_request(url=config.entrant_application_info_url.format(application_id))['data']['need_hostel']:
                 self.need_hostel = True
 
-            application = Application(application_id, application_changed, application_id_status,
-                                      application_name_status, application_competitive_id_education_source,
-                                      application_competitive_id, application_competitive_id_direction,
-                                      application_competitive_uid, self.has_target_applications,
-                                      application_competitive_subdivision_name, application_competitive_name,
-                                      application_competitive_id_education_level,
+            application = Application(application_id, application_uid_epgu, application_registration_date,
+                                      application_id_status, application_name_status,
+                                      application_competitive_id_education_source, application_competitive_id,
+                                      application_competitive_id_direction, application_competitive_uid,
+                                      self.has_target_applications, application_competitive_subdivision_name,
+                                      application_competitive_name, application_competitive_id_education_level,
                                       application_competitive_name_education_level)
 
             self.applications.append(application)
@@ -377,11 +391,12 @@ class Certificate:
 
 
 class Application:
-    def __init__(self, id, date_changed, id_status, name_status, competitive_id_education_source, competitive_id,
+    def __init__(self, id, uid_epgu, registration_date, id_status, name_status, competitive_id_education_source, competitive_id,
                  competitive_id_direction, competitive_uid, is_target, competitive_subdivision_name, competitive_name,
                  competitive_id_education_level, competitive_name_education_level):
         self.id = id
-        self.date_changed = date_changed
+        self.uid_epgu = uid_epgu
+        self.registration_date = registration_date
         self.id_status = id_status
         self.name_status = name_status
         self.competitive_id_education_source = competitive_id_education_source

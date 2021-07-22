@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 
 headers = {
     'Accept': 'application/json, text/plain, */*',
@@ -10,7 +10,7 @@ headers = {
 
 datetime_format = "%Y-%m-%dT%H:%M:%SZ"
 datetime_format_for_application = "%Y-%m-%dT%H:%M:%SZ"
-"2021-07-15T17:47:50.015127+03:00"
+date_format = "%Y-%m-%d"
 
 url = 'http://10.3.60.2/'
 if DEBUG:
