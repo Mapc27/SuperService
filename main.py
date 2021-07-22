@@ -61,48 +61,18 @@ class SuperService:
             entrant.get_info_from_applications()
             entrant.get_trouble_status()
 
-            if entrant.snils is not None:
-                snils = entrant.snils[0:3] + ' ' + entrant.snils[3:6] + ' ' + entrant.snils[6:9] + ' '\
-                        + entrant.snils[9:11]
+            # for key in dir(entrant):
+            #     try:
+            #         print(key, ' = ', entrant.__getattribute__(key))
+            #     except:
+            #         pass
 
-            # ent = {
-            #     'surname': entrant.surname,
-            #     'name': entrant.name,
-            #     'patronymic': entrant.patronymic,
-            #     'birthday': entrant.birthday.strftime("%d.%m.%Y"),
-            #     'birthplace': entrant.birthplace,
-            #     'gender': entrant.name_gender,
-            #     'phone': entrant.phone,
-            #     'email': entrant.email,
-            #     'snils': entrant.snils,
-            #     'hostel': entrant.need_hostel,
-            # }
-
-            passport = {'passport': entrant.passports}
-
-            certificate = {'certificate': entrant.certificates}
-
-            address = {
-                'r_index': entrant.registration_address_index,
-                'r_region_name': entrant.registration_address_name_region,
-                'r_area': entrant.registration_address_area,
-                'r_cityA': entrant.registration_address_city_area,
-                'r_city': entrant.registration_address_city,
-                "r_street": entrant.registration_address_street,
-
-                'f_index': entrant.fact_address_index,
-                'f_region_name': entrant.fact_address_name_region,
-                'f_area': entrant.fact_address_area,
-                'f_cityA': entrant.fact_address_city_area,
-                'f_city': entrant.fact_address_city,
-                "f_street": entrant.fact_address_street,
-            }
-
-            applications = {"apps": entrant.applications}
 
             db_insertions.ins_pers(entrant)
-            db_insertions.ins_pass(passport['passport'], db_insertions.get_entrant_id(entrant))
-
+            db_insertions.ins_pass(entrant.passports, db_insertions.get_entrant_id(entrant))
+            db_insertions.ins_cert(entrant.certificates, db_insertions.get_entrant_id(entrant))
+            db_insertions.ins_address(entrant, db_insertions.get_entrant_id(entrant))
+            db_insertions.ins_apps(entrant.applications, db_insertions.get_entrant_id(entrant))
 
 class Entrant:
     def __init__(self, id):
