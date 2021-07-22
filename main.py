@@ -442,19 +442,19 @@ class Application:
     def __init__(self, id, date_changed, id_status, name_status, competitive_id_education_source, competitive_id,
                  competitive_id_direction, competitive_uid, is_target, competitive_subdivision_name, competitive_name,
                  competitive_id_education_level, competitive_name_education_level):
-        self.id = id
-        self.date_changed = date_changed
+        self.id = id #
+        self.date_changed = date_changed #
         self.id_status = id_status
-        self.name_status = name_status
+        self.name_status = name_status #
         self.competitive_id_education_source = competitive_id_education_source
         self.competitive_id = competitive_id
         self.competitive_id_direction = competitive_id_direction
-        self.competitive_uid = competitive_uid
-        self.is_target = is_target
-        self.competitive_subdivision_name = competitive_subdivision_name
-        self.competitive_name = competitive_name
-        self.competitive_id_education_level = competitive_id_education_level
-        self.competitive_name_education_level = competitive_name_education_level
+        self.competitive_uid = competitive_uid #
+        self.is_target = is_target #
+        self.competitive_subdivision_name = competitive_subdivision_name #
+        self.competitive_name = competitive_name #
+        self.competitive_id_education_level = competitive_id_education_level #
+        self.competitive_name_education_level = competitive_name_education_level #
 
 
 if __name__ == '__main__':
