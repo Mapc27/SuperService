@@ -2,8 +2,11 @@ import psycopg2
 from datetime import datetime
 
 
+password = "meteor23"
+
+
 def ins_pers(person):
-    conn = psycopg2.connect('user = postgres password = qwerty12345 dbname = postgres')
+    conn = psycopg2.connect('user = postgres password = {} dbname = postgres'.format(password))
     cur = conn.cursor()
     person.name = '\'%s\'' % person.name
     person.surname = '\'%s\'' % person.surname
@@ -28,20 +31,20 @@ def ins_pers(person):
 
 
 def get_entrant_id(person):
-    conn = psycopg2.connect('user = postgres password = qwerty12345 dbname = postgres')
+    conn = psycopg2.connect('user = postgres password = {} dbname = postgres'.format(password))
     cur = conn.cursor()
     # language=sql
     take = 'select id from entrant where snils = %s'
     cur.execute(take % person.snils)
     arr = cur.fetchall()
-    cur.close
+    cur.close()
     conn.commit()
     conn.close()
     return arr[0]
 
 
 def ins_pass(passports, id):
-    conn = psycopg2.connect('user = postgres password = qwerty12345 dbname = postgres')
+    conn = psycopg2.connect('user = postgres password = {} dbname = postgres'.format(password))
     cur = conn.cursor()
 
     # language=sql
@@ -49,42 +52,34 @@ def ins_pass(passports, id):
              "values(%s,%s,%s,%s,%s,%s)"
     for i in range(len(passports)):
         cur.execute(insert, (
-            id, passports[i].series, passports[i].number, passports[i].issue_date, passports[i].organization,
-            passports[i].subdivision_code))
+            id, passports[i].series, passports[i].number, passports[i].issue_date.strftime("%d.%m.%Y"),
+            passports[i].organization, passports[i].subdivision_code))
     cur.close()
     conn.commit()
     conn.close()
 
 
 def ins_cert(certificates, id):
-    conn = psycopg2.connect('user = postgres password = qwerty12345 dbname = postgres')
+    conn = psycopg2.connect('user = postgres password = {} dbname = postgres'.format(password))
     cur = conn.cursor()
     insert = "insert into certificate(entrant_id, series, number, issue_date, organization)" \
              " values(%s,%s,%s,%s,%s)"
     for i in certificates:
-        cur.execute(insert, (id, i.series, i.number, i.issue_date, i.organization))
+        cur.execute(insert, (id, i.series, i.number, i.issue_date.strftime("%d.%m.%Y"), i.organization))
     cur.close()
     conn.commit()
     conn.close()
 
 
 def ins_address(entrant, id):
-    conn = psycopg2.connect('user = postgres password = qwerty12345 dbname = postgres')
+    conn = psycopg2.connect('user = postgres password = {} dbname = postgres'.format(password))
     cur = conn.cursor()
     # language=sql
     insert = "insert into address(entrant_id, r_index, r_region_name, r_area, r_city_area, r_city, r_street, f_index," \
              " f_region_name, f_area, f_city_area, f_city, f_street) " \
              " values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 
-    # for key in range(26, len(dir(entrant))):
-    #     try:
-    #         print(dir(entrant)[key], ' = ', entrant.__getattribute__(dir(entrant)[key]))
-    #     except:
-    #         pass
-
-    # print(type(entrant))
-
-    cur.execute(insert, (50, entrant.registration_address_index, entrant.registration_address_name_region,
+    cur.execute(insert, (id, entrant.registration_address_index, entrant.registration_address_name_region,
                          entrant.registration_address_area, entrant.registration_address_city_area,
                          entrant.registration_address_city, entrant.registration_address_street,
                          entrant.fact_address_index,
@@ -98,14 +93,14 @@ def ins_address(entrant, id):
 
 
 def ins_apps(applications, id):
-    conn = psycopg2.connect('user = postgres password = qwerty12345 dbname = postgres')
+    conn = psycopg2.connect('user = postgres password = {} dbname = postgres'.format(password))
     cur = conn.cursor()
     # language=sql
     insert = "insert into application(entrant_id, date_changes, status_name, uid, target, subdiv_name, id_edu_level, edu_level) " \
              "values(%s,%s,%s,%s,%s,%s,%s,%s)"
     for i in applications:
-        cur.execute(insert, (id, i.date_changed, i.name_status, 000, i.is_target, i.competitive_subdivision_name,
-                             i.competitive_id_education_level,
+        cur.execute(insert, (id, i.registration_date.strftime("%d.%m.%Y"), i.name_status, 000, i.is_target,
+                             i.competitive_subdivision_name, i.competitive_id_education_level,
                              i.competitive_name_education_level))
     cur.close()
     conn.commit()

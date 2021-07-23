@@ -6,7 +6,6 @@ import requests
 
 import config
 import db_insertions
-from xml_builder import create_xml
 
 
 def get_request(url):
@@ -68,7 +67,7 @@ class SuperService:
             #     except:
             #         pass
 
-            create_xml(entrant)
+
             db_insertions.ins_pers(entrant)
             db_insertions.ins_pass(entrant.passports, db_insertions.get_entrant_id(entrant))
             db_insertions.ins_cert(entrant.certificates, db_insertions.get_entrant_id(entrant))
