@@ -2,7 +2,7 @@ import psycopg2
 from datetime import datetime
 
 
-password = "meteor23"
+password = "qwerty12345"
 
 
 def ins_pers(person):
