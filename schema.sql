@@ -1,6 +1,7 @@
 create table entrant
 (
     id         serial primary key,
+    entrant_id varchar,
     name       varchar,
     surname    varchar,
     patronymic varchar,
@@ -50,7 +51,7 @@ create table address
     f_city        varchar,
     f_street      varchar,
 
-    birthplace varchar
+    birthplace    varchar
 
 );
 create table application
