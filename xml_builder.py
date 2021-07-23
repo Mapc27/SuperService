@@ -3,9 +3,9 @@ import codecs
 
 def create_xml(entrant):
 
-    # passports = entrant.get_info_from_identification()
-    # applications = entrant.get_info_from_applications()
-    # cerificates = entrant.certificates
+    passports = entrant.get_info_from_identification()
+    applications = entrant.get_info_from_applications()
+    cerificates = entrant.certificates
 
     package_data = etree.Element('PackageData')
     ser = etree.SubElement(package_data, "ServiceEntrant")
@@ -20,7 +20,7 @@ def create_xml(entrant):
     ps_surname = etree.SubElement(passport, "Surname")
     ps_surname.text = str(entrant.surname)
     ps_series = etree.SubElement(passport,"Series")
-    ps_series.text = "passports[0].series"
+    # ps_series.text = passports[0].series
     ps_number = etree.SubElement(passport, "Number")
     ps_number.text = "passports[0].number"
     ps_birthday = etree.SubElement(passport, "Birthday")
@@ -103,5 +103,5 @@ def create_xml(entrant):
     discipline.text = ""
 
 
-    etree.ElementTree(package_data).write("xmls\\file.xml")
-
+    # etree.ElementTree(package_data).write("xmls\\file.xml")
+    open("xmls\\file.xml",'w', encoding = "utf-8").write(etree.tostring(package_data, encoding='utf-8').decode('utf-8'))
