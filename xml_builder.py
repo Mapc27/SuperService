@@ -1,10 +1,10 @@
 from lxml import etree
 import codecs
 
-def create_xml(entrant):
 
-    passports = entrant.get_info_from_identification()
-    applications = entrant.get_info_from_applications()
+def create_xml(entrant):
+    passports = entrant.passports
+    applications = entrant.applications
     cerificates = entrant.certificates
 
     package_data = etree.Element('PackageData')
@@ -22,7 +22,7 @@ def create_xml(entrant):
     ps_series = etree.SubElement(passport,"Series")
     # ps_series.text = passports[0].series
     ps_number = etree.SubElement(passport, "Number")
-    ps_number.text = "passports[0].number"
+    ps_number.text = passports[0].number
     ps_birthday = etree.SubElement(passport, "Birthday")
     ps_birthday.text = str(entrant.birthday)
     ps_IDOCKCM = etree.SubElement(passport, "IDOCKCM")

@@ -2,7 +2,7 @@ import psycopg2
 from datetime import datetime
 
 
-password = "qwerty12345"
+password = "meteor23"
 
 
 def ins_pers(person):
@@ -99,7 +99,7 @@ def ins_apps(applications, id):
     insert = "insert into application(entrant_id, date_changes, status_name, uid, target, subdiv_name, id_edu_level, edu_level) " \
              "values(%s,%s,%s,%s,%s,%s,%s,%s)"
     for i in applications:
-        cur.execute(insert, (id, i.date_changed, i.name_status, 000, i.is_target,
+        cur.execute(insert, (id, i.registration_date.strftime("%d.%m.%Y"), i.name_status, 000, i.is_target,
                              i.competitive_subdivision_name, i.competitive_id_education_level,
                              i.competitive_name_education_level))
     cur.close()
