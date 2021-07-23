@@ -5,7 +5,7 @@ import codecs
 def create_xml(entrant):
     passports = entrant.passports
     applications = entrant.applications
-    cerificates = entrant.certificates
+    certificates = entrant.certificates
 
     package_data = etree.Element('PackageData')
     ser = etree.SubElement(package_data, "ServiceEntrant")
