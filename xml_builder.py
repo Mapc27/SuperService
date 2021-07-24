@@ -27,20 +27,21 @@ def create_xml(entrant):
     ps_number.text = passports[0].number
     ps_birthday = etree.SubElement(passport, "Birthday")
     ps_birthday.text = str(entrant.birthday)
-
+    ps_uid = etree.SubElement(passport, "UID")
+    ps_uid.text = str(passports[0].id)
     ps_org = etree.SubElement(passport, "DocOrganisation")
     ps_org.text = passports[0].organization
 
     education_document = etree.SubElement(entrant_choice, "EducationDocument")
     education_document.text = "Среднее общее образование"
     type = etree.SubElement(education_document, "Type")
-    type.text = ""
+    type.text = "Аттестат о среднем общем образовании"
     education_level = etree.SubElement(education_document, "EducationLevel")
-    education_level.text = ""
+    education_level.text = "Среднее общее образование"
     series = etree.SubElement(education_document, "Series")
     if not certificates:
         return
-    series.text = certificates[0].series
+    series.text = certificates[0].series.replace("нет", "")
     number = etree.SubElement(education_document, "Number")
     number.text = certificates[0].number
     organisation = etree.SubElement(education_document, "Organisation")
@@ -73,9 +74,8 @@ def create_xml(entrant):
     need_hostel.text = str(entrant.need_hostel)
     first_degree = etree.SubElement(ser, "FirstDegree")
     first_degree.text = "Да"
-    addresses = etree.SubElement(ser, "Addresses")
 
-    address = etree.SubElement(addresses, "Address")
+    address = etree.SubElement(ser, "Address")
     a_index = etree.SubElement(address, "IndexAddr")
     a_index.text = entrant.registration_address_index
     id_region = etree.SubElement(address, "IDRegion")
@@ -106,6 +106,8 @@ def create_xml(entrant):
         app = etree.SubElement(service_applications, "Application")
         id_app = etree.SubElement(app, "ID")
         id_app.text = str(i.id)
+        uid_epgu_app = etree.SubElement(app, "EpguUID")
+        uid_epgu_app = str(i.uid_epgu)
         reg_date = etree.SubElement(app, "RegistrationDate")
         reg_date.text = str(i.registration_date)
         comp_id_edu_source = etree.SubElement(app, "CompetetiveIDEducationSource")
