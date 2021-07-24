@@ -42,6 +42,9 @@ entrant_contracts_url = url + 'api/entrants/{}/contracts/list'
 # {} = entrant id
 entrant_achievements_url = url + 'api/entrants/{}/achievements/list'
 
+# {0}, {1} = entrant id, achievement id
+entrant_achievements_download_url = url + '/api/entrants/{0}/achievements/{1}/file'
+
 # вкладка Другие
 # {} = entrant id
 entrant_others_url = url + 'api/entrants/{}/docs/short?no_categories=identification'
