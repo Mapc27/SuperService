@@ -5,16 +5,13 @@ import codecs
 def create_xml(entrant):
     passports = entrant.passports
     applications = entrant.applications
-    certificates = entrant.certificates
-    print(entrant.exams)
+    cerificates = entrant.certificates
 
     package_data = etree.Element('PackageData')
     ser = etree.SubElement(package_data, "ServiceEntrant")
     entrant_choice = etree.SubElement(ser, "IDEntrantChoice")
     guid = etree.SubElement(entrant_choice, "GUID")
     guid.text = ""
-    entrant_id = etree.SubElement(ser, "EntrantID")
-    entrant_id.text = str(entrant.id)
     snils = etree.SubElement(entrant_choice, "SNILS")
     snils.text = entrant.snils
     passport = etree.SubElement(entrant_choice, "Passport")
@@ -53,50 +50,44 @@ def create_xml(entrant):
     surname = etree.SubElement(ser, "Surname")
     surname.text = entrant.surname
     name = etree.SubElement(ser, "Name")
-    name.text = entrant.name
+    name.text = ""
     patronymic = etree.SubElement(ser, "Patronymic")
-    patronymic.text = entrant.patronymic
+    patronymic.text = ""
     gender = etree.SubElement(ser, "Gender")
-    gender.text = str(entrant.id_gender)
+    gender.text = ""
     birth_day = etree.SubElement(ser, "Birthday")
-    birth_day.text = entrant.birthday
+    birth_day.text = ""
     birth_place = etree.SubElement(ser, "BirthPlace")
-    birth_place.text = entrant.birthplace
+    birth_place.text = ""
     phone = etree.SubElement(ser, "Phone")
-    phone.text = entrant.phone
+    phone.text = ""
     email = etree.SubElement(ser, "Email")
-    email.text = entrant.email
+    email.text = ""
 
     need_hostel = etree.SubElement(ser, "NeedHostel")
-    need_hostel.text = str(entrant.need_hostel)
+    need_hostel.text = ""
     first_degree = etree.SubElement(ser, "FirstDegree")
     first_degree.text = "Да"
     addresses = etree.SubElement(ser, "Addresses")
 
     address = etree.SubElement(addresses, "Address")
     a_index = etree.SubElement(address, "IndexAddr")
-    a_index.text = entrant.registration_address_index
+    a_index.text = ""
     id_region = etree.SubElement(address, "IDRegion")
-    id_region.text = str(entrant.registration_address_id_region)
+    id_region.text = ""
     area = etree.SubElement(address, "Area")
     area.text = ""
-    if entrant.registration_address_area is not None:
-        area.text = entrant.registration_address_area
     city = etree.SubElement(address, "City")
-    city.text = entrant.registration_address_city
+    city.text = ""
     place = etree.SubElement(address, "Place")
     place.text = ""
     ct_area = etree.SubElement(address, "CityArea")
-    if entrant.registration_address_city_area is not None:
-        ct_area.text = entrant.registration_address_city_area
-    else:
-        ct_area.text = ""
+    ct_area.text = ""
     street = etree.SubElement(address, "Street")
-    street.text = entrant.registration_address_street
+    street.text = ""
     house = etree.SubElement(address, "House")
     house.text = ""
     apartment = etree.SubElement(address, "Apartment")
-    apartment.text = ""
 
     service_applications = etree.SubElement(ser, "ServiceApplications")
     for i in applications:

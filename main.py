@@ -305,13 +305,28 @@ class Entrant:
             if get_request(url=config.entrant_application_info_url.format(application_id))['data']['need_hostel']:
                 self.need_hostel = True
 
+            application_exams = get_request(url=config.entrant_application_exams.format(application_id))['data']
+
+            exams = []
+            for exam in application_exams:
+                if exam['app_entrance_test'] is not None:
+                    exam_id = exam['id']
+                    exam_result_value = exam['result_value']
+                    exam_uid = exam['uid']
+                    exam_id_subject = exam['id_subject']
+                    exam_name_subject = exam['name_subject']
+                    exam_priority = exam['priority']
+
+                    exam_obj = Exam(exam_id, exam_result_value, exam_uid, exam_id_subject, exam_name_subject, exam_priority)
+                    exams.append(exam_obj)
+
             application = Application(application_id, application_uid_epgu, application_registration_date,
                                       application_id_status, application_name_status,
                                       application_competitive_id_education_source, application_competitive_id,
                                       application_competitive_id_direction, application_competitive_uid,
                                       self.has_target_applications, application_competitive_subdivision_name,
                                       application_competitive_name, application_competitive_id_education_level,
-                                      application_competitive_name_education_level)
+                                      application_competitive_name_education_level, exams)
 
             self.applications.append(application)
 
@@ -387,7 +402,7 @@ class Certificate:
 class Application:
     def __init__(self, id, uid_epgu, registration_date, id_status, name_status, competitive_id_education_source, competitive_id,
                  competitive_id_direction, competitive_uid, is_target, competitive_subdivision_name, competitive_name,
-                 competitive_id_education_level, competitive_name_education_level):
+                 competitive_id_education_level, competitive_name_education_level, exams):
         self.id = id
         self.uid_epgu = uid_epgu
         self.registration_date = registration_date
@@ -402,6 +417,17 @@ class Application:
         self.competitive_name = competitive_name
         self.competitive_id_education_level = competitive_id_education_level
         self.competitive_name_education_level = competitive_name_education_level
+        self.exams = exams
+
+
+class Exam:
+    def __init__(self, id, result_value, uid, id_subject, name_subject, priority):
+        self.id = id
+        self.result_value = result_value
+        self.uid = uid
+        self.id_subject = id_subject
+        self.name_subject = name_subject
+        self.priority = priority
 
 
 if __name__ == '__main__':

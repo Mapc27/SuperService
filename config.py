@@ -70,56 +70,6 @@ entrant_competitive_download_url = url + 'api/applications/{}/generate/pdf'
 # {} = application id
 entrant_application_info_url = url + 'api/applications/{}/info'
 
-subjects_dict = {
-    '186': 'Английский язык (устный)',
-    '4': 'Биология',
-    '5': 'География',
-    '184': 'Изложение',
-    '24': 'Иностранный язык - английский',
-    '14': 'Иностранный язык - испанский',
-    '68': 'Иностранный язык - китайский',
-    '12': 'Иностранный язык - немецкий',
-    '13': 'Иностранный язык - французский',
-    '3': 'Информатика и ИКТ',
-    '189': 'Испанский язык (устный)',
-    '7': 'История',
-    '190': 'Китайский язык (устный)',
-    '38': 'Крымско-татарский язык',
-    '8': 'Литература',
-    '2': 'Математика',
-    '185': 'Математика базовая',
-    '187': 'Немецкий язык (устный)',
-    '9': 'Обществознание',
-    '1': 'Русский язык',
-    '183': 'Сочинение',
-    '10': 'Физика',
-    '188': 'Французский язык (устный)',
-    '11': 'Химия',
-}
-
-education_level_dict = {
-    2: "Бакалавриат",
-    3: "Специалитет",
-}
-
-download_data = {"docs": [
-            {
-                "type": "idents",
-                "id": None,
-                "name_category": "idents",
-                "name_type": "Паспорт гражданина Российской Федерации",
-                "document_name": "Паспорт гражданина Российской Федерации"
-            },
-            {
-                "type": "docs",
-                "id": None,
-                "name_category": "docs",
-                "name_type": "Аттестат о среднем общем образовании",
-                "document_name": "Аттестат о среднем общем образовании"
-            }
-        ]
-}
-
 # вкладка другие -> документ
 # {} = document id
 entrant_others_doc_url = url + 'api/docs/{}/edit'
@@ -148,6 +98,9 @@ entrant_competitive_download_url = url + 'api/applications/{}/generate/pdf'
 # {} = application id
 entrant_application_set_status_url = url + 'api/applications/{}/status/set'
 
+# get exams for application
+# {} = application id
+entrant_application_exams = url + 'api/applications/{}/tests/list'
 
 subjects_dict = {
     '186': 'Английский язык (устный)',

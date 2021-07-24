@@ -24,8 +24,7 @@ def post_request(url, data):
     return requests.post(url, headers=headers, json=data).content
 
 
-while True:
-    entrant_id = input('entrant_id:  ')
+def set_status(entrant_id):
     info = get_request(url=entrant_applications_url.format(entrant_id))['data']
 
     for app in info:
