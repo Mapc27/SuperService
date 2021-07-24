@@ -107,7 +107,7 @@ def create_xml(entrant):
         id_app = etree.SubElement(app, "ID")
         id_app.text = str(i.id)
         uid_epgu_app = etree.SubElement(app, "EpguUID")
-        uid_epgu_app = str(i.uid_epgu)
+        uid_epgu_app.text = str(i.uid_epgu)
         reg_date = etree.SubElement(app, "RegistrationDate")
         reg_date.text = str(i.registration_date)
         comp_id_edu_source = etree.SubElement(app, "CompetetiveIDEducationSource")
