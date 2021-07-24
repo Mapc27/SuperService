@@ -249,28 +249,27 @@ class Entrant:
 
             self.achievements.append(achievement)
 
-            # headers = {
-            #     'Host': '85.142.162.4:8032',
-            #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0',
-            #     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            #     'Accept-Language': 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3',
-            #     'Accept-Encoding': 'gzip, deflate',
-            #     'Connection': 'keep-alive',
-            #     'Cookie':
-            #         'login=aabibik@kpfu.ru; password=b96149f775a5ca6eeb55ad9948fe1a78cfe849109bbdb940b4af3790ef5a00da;'
-            #         ' current-org=1279',
-            #     'Upgrade-Insecure-Requests': '1',
-            # }
-            #
-            # response = requests.get(url=config.entrant_achievements_download_url.format(self.id, achievement_id),
-            #                         headers=headers)
-            # print(response.text)
-            # # file = response.content
-            # headers = response.headers
-            # content_type = headers['Content-Type']
-            # print(content_type)
-            # content_type = re.findall(r'([a-z]{4,11}/[\w\+\-\.]+)', content_type)[0]
-            # print(content_type)
+            headers = config.headers
+
+            headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+            headers['Accept-Language'] = 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3'
+
+            response = requests.get(url=config.entrant_achievements_download_url.format(self.id, achievement_id),
+                                    headers=headers)
+
+            file = response.content
+            headers = response.headers
+            content_type = re.findall(r'([a-z]{4,11}/[\w\+\-\.]+)', headers['Content-Type'])[0]
+            type = content_type.split('/')[-1]
+
+            file_name = achievement_name
+            count = 1
+            while os.path.exists('applications\\' + self.directory_name + file_name + '.' + type):
+                file_name = achievement_name + str(count)
+                count += 1
+
+            with open("achievements\\" + self.directory_name + '\\' + file_name + '.' + type, 'wb') as f:
+                f.write(file)
 
     def get_info_from_others(self):
         info = get_request(url=config.entrant_others_url.format(self.id))['data'][0]['docs']
