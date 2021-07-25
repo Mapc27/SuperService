@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import time
 from datetime import datetime
 
@@ -112,6 +113,9 @@ class Entrant:
         self.registration_address_street = None
         self.registration_address_name_region = None
 
+        self.registration_address_house = None
+        self.registration_address_apartment = None
+
         # fact address
         self.fact_address_index = None
         self.fact_address_id_region = None
@@ -123,12 +127,18 @@ class Entrant:
         self.fact_address_street = None
         self.fact_address_name_region = None
 
+        self.fact_address_house = None
+        self.fact_address_apartment = None
+
         self.need_hostel = False
 
         self.passports = []
         self.exams = []
         self.certificates = []
         self.applications = []
+        self.achievements = []
+
+        self.directory_name = None
 
     def get_info_from_main(self):
         info = get_request(config.entrant_main_url.format(self.id))['data']
@@ -158,6 +168,9 @@ class Entrant:
             self.registration_address_street = info['registration_address']['street']
             self.registration_address_name_region = info['registration_address']['name_region']
 
+            self.registration_address_house =  info['registration_address']['house']
+            self.registration_address_apartment =  info['registration_address']['apartment']
+
         # fact address
         if info['fact_address'] is not None:
             self.fact_address_index = info['fact_address']['index_addr']
@@ -169,6 +182,9 @@ class Entrant:
             self.fact_address_city_area = info['fact_address']['city_area']
             self.fact_address_street = info['fact_address']['street']
             self.fact_address_name_region = info['fact_address']['name_region']
+
+            self.fact_address_house = info['fact_address']['house']
+            self.fact_address_apartment = info['fact_address']['apartment']
 
     def get_info_from_identification(self):
         info = get_request(config.entrant_identification_url.format(self.id))['data'][0]['docs']
@@ -210,6 +226,50 @@ class Entrant:
         info = get_request(url=config.entrant_achievements_url.format(self.id))['data']
         if info:
             self.has_achievements = True
+        else:
+            return
+        directory_name = self.surname + '_' + self.name + '_' + self.patronymic
+
+        if not os.path.exists('achievements'):
+            os.mkdir('achievements')
+        new_name = directory_name
+        count = 1
+        while os.path.exists("achievements\\" + new_name):
+            new_name = directory_name + '_' + str(count)
+            count += 1
+        self.directory_name = new_name
+
+        os.mkdir("achievements\\" + self.directory_name)
+
+        for achievement_ in info:
+            achievement_id = achievement_['id']
+            achievement_name = achievement_['name']
+            achievement_uid_epgu = achievement_['uid_epgu']
+            achievement = Achievement(achievement_id, achievement_name, achievement_uid_epgu)
+
+            self.achievements.append(achievement)
+
+            headers = config.headers
+
+            headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+            headers['Accept-Language'] = 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3'
+
+            response = requests.get(url=config.entrant_achievements_download_url.format(self.id, achievement_id),
+                                    headers=headers)
+
+            file = response.content
+            headers = response.headers
+            content_type = re.findall(r'([a-z]{4,11}/[\w\+\-\.]+)', headers['Content-Type'])[0]
+            type = content_type.split('/')[-1]
+
+            file_name = achievement_name
+            count = 1
+            while os.path.exists('applications\\' + self.directory_name + file_name + '.' + type):
+                file_name = achievement_name + str(count)
+                count += 1
+
+            with open("achievements\\" + self.directory_name + '\\' + file_name + '.' + type, 'wb') as f:
+                f.write(file)
 
     def get_info_from_others(self):
         info = get_request(url=config.entrant_others_url.format(self.id))['data'][0]['docs']
@@ -260,7 +320,10 @@ class Entrant:
             self.has_more_than_one_certificate = True
 
     def get_info_from_applications(self):
-        directory_name = self.surname + '_' + self.name + '_' + self.patronymic
+        if self.directory_name is None:
+            directory_name = self.surname + '_' + self.name + '_' + self.patronymic
+        else:
+            directory_name = self.directory_name
 
         if not os.path.exists('applications'):
             os.mkdir('applications')
@@ -269,9 +332,9 @@ class Entrant:
         while os.path.exists("applications\\" + new_name):
             new_name = directory_name + '_' + str(count)
             count += 1
-        directory_name = new_name
+        self.directory_name = new_name
 
-        os.mkdir("applications\\" + directory_name)
+        os.mkdir("applications\\" + self.directory_name)
 
         info = get_request(url=config.entrant_applications_url.format(self.id))['data']
         print('============== ' + directory_name + ' ============')
@@ -317,7 +380,8 @@ class Entrant:
                     exam_name_subject = exam['name_subject']
                     exam_priority = exam['priority']
 
-                    exam_obj = Exam(exam_id, exam_result_value, exam_uid, exam_id_subject, exam_name_subject, exam_priority)
+                    exam_obj = Exam(exam_id, exam_result_value, exam_uid, exam_id_subject, exam_name_subject,
+                                    exam_priority)
                     exams.append(exam_obj)
 
             application = Application(application_id, application_uid_epgu, application_registration_date,
@@ -345,7 +409,7 @@ class Entrant:
                         count += 1
                     file_name = new_name
 
-                    file_path = "applications\\{0}\\{1}".format(directory_name, file_name)
+                    file_path = "applications\\{0}\\{1}".format(self.directory_name, file_name)
 
                     if os.path.exists(file_path + '.pdf'):
                         file_path += str(certificate.id)
@@ -400,9 +464,9 @@ class Certificate:
 
 
 class Application:
-    def __init__(self, id, uid_epgu, registration_date, id_status, name_status, competitive_id_education_source, competitive_id,
-                 competitive_id_direction, competitive_uid, is_target, competitive_subdivision_name, competitive_name,
-                 competitive_id_education_level, competitive_name_education_level, exams):
+    def __init__(self, id, uid_epgu, registration_date, id_status, name_status, competitive_id_education_source,
+                 competitive_id, competitive_id_direction, competitive_uid, is_target, competitive_subdivision_name,
+                 competitive_name, competitive_id_education_level, competitive_name_education_level, exams):
         self.id = id
         self.uid_epgu = uid_epgu
         self.registration_date = registration_date
@@ -428,6 +492,13 @@ class Exam:
         self.id_subject = id_subject
         self.name_subject = name_subject
         self.priority = priority
+
+
+class Achievement:
+    def __init__(self, achievement_id, achievement_name, achievement_uid_epgu):
+        self.achievement_id = achievement_id
+        self.achievement_name = achievement_name
+        self.achievement_uid_epgu = achievement_uid_epgu
 
 
 if __name__ == '__main__':
