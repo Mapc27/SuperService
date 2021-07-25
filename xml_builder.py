@@ -100,10 +100,13 @@ def create_xml(entrant):
     street = etree.SubElement(address, "Street")
     street.text = entrant.registration_address_street
     house = etree.SubElement(address, "House")
-    house.text = ""
+    house.text = entrant.fact_address_house
+    if entrant.fact_address_house is None:
+        house.text = ""
     apartment = etree.SubElement(address, "Apartment")
-
-    apartment.text = ""
+    apartment.text = entrant.fact_address_apartment
+    if entrant.fact_address_apartment is None:
+        apartment.text = ""
 
     service_applications = etree.SubElement(ser, "ServiceApplications")
     for i in applications:
