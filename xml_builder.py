@@ -21,6 +21,8 @@ def create_xml(entrant):
     ps_name.text = entrant.name
     ps_surname = etree.SubElement(passport, "Surname")
     ps_surname.text = str(entrant.surname)
+    ps_patr = etree.SubElement(passport, "Patronymic")
+    ps_patr.text = entrant.patronymic
     ps_series = etree.SubElement(passport, "Series")
     ps_series.text = passports[0].series
     ps_number = etree.SubElement(passport, "Number")
@@ -29,6 +31,8 @@ def create_xml(entrant):
     ps_birthday.text = str(entrant.birthday)
     ps_uid = etree.SubElement(passport, "UID")
     ps_uid.text = str(passports[0].id)
+    ps_issue_date = etree.SubElement(passport, "IssueDate")
+    ps_issue_date.text = str(passport[0].issue_date)
     ps_org = etree.SubElement(passport, "DocOrganisation")
     ps_org.text = passports[0].organization
 
