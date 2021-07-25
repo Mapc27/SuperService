@@ -37,7 +37,7 @@ def create_xml(entrant):
     ps_org.text = passports[0].organization
 
     education_document = etree.SubElement(entrant_choice, "EducationDocument")
-    education_document.text = "Среднее общее образование"
+    # education_document.text = "Среднее общее образование"
     type = etree.SubElement(education_document, "Type")
     type.text = "Аттестат о среднем общем образовании"
     education_level = etree.SubElement(education_document, "EducationLevel")
