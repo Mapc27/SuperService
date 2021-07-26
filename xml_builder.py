@@ -1,4 +1,5 @@
 from lxml import etree
+import re
 import codecs
 
 
@@ -32,7 +33,7 @@ def create_xml(entrant):
     ps_uid = etree.SubElement(passport, "UID")
     ps_uid.text = str(passports[0].id)
     ps_issue_date = etree.SubElement(passport, "IssueDate")
-    ps_issue_date.text = str(passport[0].issue_date)
+    ps_issue_date.text = str(passports[0].issue_date.strftime("%d.%m.%Y"))
     ps_org = etree.SubElement(passport, "DocOrganisation")
     ps_org.text = passports[0].organization
 
@@ -45,7 +46,9 @@ def create_xml(entrant):
     series = etree.SubElement(education_document, "Series")
     if not certificates:
         return
-    series.text = certificates[0].series.replace("нет", "")
+    string = certificates[0].series.replace("нет", "").replace()
+    res = re.sub('\\W', "", string)
+    series.text = res
     number = etree.SubElement(education_document, "Number")
     number.text = certificates[0].number
     organisation = etree.SubElement(education_document, "Organisation")
@@ -145,5 +148,5 @@ def create_xml(entrant):
             priority.text = str(i.priority)
 
     # etree.ElementTree(package_data).write("xmls\\file.xml")
-    open("xmls\\%s.xml" % entrant.name, 'w', encoding="utf-8").write(
+    open("xmls\\%s %s %s.xml" % (entrant.surname, entrant.name, entrant.patronymic), 'w', encoding="utf-8").write(
         etree.tostring(package_data, encoding='utf-8').decode('utf-8'))
