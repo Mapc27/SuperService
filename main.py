@@ -57,11 +57,14 @@ class SuperService:
         return entrants_list
 
     def main(self):
+
         for entrant_ in self.get_entrants_list():
             entrant = Entrant(entrant_['id'])
 
             entrant.get_info_from_main()
             entrant.get_info_from_identification()
+            create_main_directories()
+            entrant.create_directory()
             entrant.get_info_from_contracts()
             entrant.get_info_from_achievements()
             entrant.get_info_from_others()
@@ -76,6 +79,14 @@ class SuperService:
             db_insertions.ins_cert(entrant.certificates, db_insertions.get_entrant_id(entrant))
             db_insertions.ins_address(entrant, db_insertions.get_entrant_id(entrant))
             db_insertions.ins_apps(entrant.applications, db_insertions.get_entrant_id(entrant))
+
+
+def create_main_directories():
+    if not os.path.exists('achievements'):
+        os.mkdir('achievements')
+
+    if not os.path.exists('applications'):
+        os.mkdir('applications')
 
 
 class Entrant:
@@ -139,6 +150,32 @@ class Entrant:
         self.achievements = []
 
         self.directory_name = None
+
+    def create_directory(self):
+        directory_name = self.surname + '_' + self.name + '_' + self.patronymic
+
+        new_name = directory_name
+        count = 1
+        while os.path.exists("\\applications\\{}".format(new_name)) or os.path.exists("\\achievements\\{}"
+                                                                                              .format(new_name)):
+            new_name = directory_name + "_" + str(count)
+            count += 1
+        self.directory_name = new_name
+
+        os.mkdir("achievements\\" + self.directory_name)
+        os.mkdir("applications\\" + self.directory_name)
+
+    def write_file(self, folder_name, file_name, format_name, file):
+        new_name = file_name
+        count = 1
+        while os.path.exists("\\{0}\\{1}\\{2}".format(folder_name, self.directory_name, new_name + "." + format_name)):
+            new_name = file_name + "_" + str(count)
+            count += 1
+
+        file_name = "\\" + folder_name + self.directory_name + "\\" + new_name + "." + format_name
+
+        with open(file_name, 'wb') as f:
+            f.write(file)
 
     def get_info_from_main(self):
         info = get_request(config.entrant_main_url.format(self.id))['data']
@@ -228,48 +265,30 @@ class Entrant:
             self.has_achievements = True
         else:
             return
-        directory_name = self.surname + '_' + self.name + '_' + self.patronymic
-
-        if not os.path.exists('achievements'):
-            os.mkdir('achievements')
-        new_name = directory_name
-        count = 1
-        while os.path.exists("achievements\\" + new_name):
-            new_name = directory_name + '_' + str(count)
-            count += 1
-        self.directory_name = new_name
-
-        os.mkdir("achievements\\" + self.directory_name)
 
         for achievement_ in info:
             achievement_id = achievement_['id']
             achievement_name = achievement_['name']
             achievement_uid_epgu = achievement_['uid_epgu']
+            achievement_file = achievement_['file']
             achievement = Achievement(achievement_id, achievement_name, achievement_uid_epgu)
 
             self.achievements.append(achievement)
 
-            headers = config.headers
+            if achievement_file:
+                headers = config.headers
 
-            headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-            headers['Accept-Language'] = 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3'
+                headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+                headers['Accept-Language'] = 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3'
 
-            response = requests.get(url=config.entrant_achievements_download_url.format(self.id, achievement_id),
-                                    headers=headers)
+                response = requests.get(url=config.entrant_achievements_download_url.format(self.id, achievement_id),
+                                        headers=headers)
 
-            file = response.content
-            headers = response.headers
-            content_type = re.findall(r'([a-z]{4,11}/[\w\+\-\.]+)', headers['Content-Type'])[0]
-            type = content_type.split('/')[-1]
+                file = response.content
+                headers = response.headers
+                content_type = re.findall(r'([a-z]{4,11}/[\w\+\-\.]+)', headers['Content-Type'])[0].split('/')[-1]
 
-            file_name = achievement_name
-            count = 1
-            while os.path.exists('applications\\' + self.directory_name + file_name + '.' + type):
-                file_name = achievement_name + str(count)
-                count += 1
-
-            with open("achievements\\" + self.directory_name + '\\' + file_name + '.' + type, 'wb') as f:
-                f.write(file)
+                self.write_file("achievements", achievement_name, content_type, file)
 
     def get_info_from_others(self):
         info = get_request(url=config.entrant_others_url.format(self.id))['data'][0]['docs']
@@ -302,6 +321,9 @@ class Entrant:
                 document_certificate_is_sge = True
                 document_certificate_issue_date = datetime.strptime(document['issue_date'], config.datetime_format)
 
+                document_certificate_has_file = document['file']
+                document_certificate_name_document_type = doc['name_document_type']
+
                 for field in document['fields']:
                     if field['key'] == 'id_education_level':
                         if field['defaultValue'] != '2':
@@ -310,8 +332,24 @@ class Entrant:
 
                 certificate = Certificate(document_id, document_certificate_series, document_certificate_number,
                                           document_certificate_org, document_certificate_issue_date,
-                                          document_certificate_is_sge, self.id)
+                                          document_certificate_is_sge, document_certificate_has_file, self.id)
                 self.certificates.append(certificate)
+
+                if document_certificate_has_file:
+                    headers = config.headers
+
+                    headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+                    headers['Accept-Language'] = 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3'
+
+                    response = requests.get(
+                        url=config.entrant_others_download_url.format(document_id),
+                        headers=headers)
+
+                    file = response.content
+                    response_headers = response.headers
+                    content_type = re.findall(r'([a-z]{4,11}/[\w\+\-\.]+)', response_headers['Content-Type'])[0].split('/')[-1]
+
+                    self.write_file("achievements", document_certificate_name_document_type, content_type, file)
 
             elif doc['id_document_type'] != 36:
                 self.has_other_certificate = True
@@ -324,17 +362,6 @@ class Entrant:
             directory_name = self.surname + '_' + self.name + '_' + self.patronymic
         else:
             directory_name = self.directory_name
-
-        if not os.path.exists('applications'):
-            os.mkdir('applications')
-        new_name = directory_name
-        count = 1
-        while os.path.exists("applications\\" + new_name):
-            new_name = directory_name + '_' + str(count)
-            count += 1
-        self.directory_name = new_name
-
-        os.mkdir("applications\\" + self.directory_name)
 
         info = get_request(url=config.entrant_applications_url.format(self.id))['data']
         print('============== ' + directory_name + ' ============')
@@ -402,21 +429,14 @@ class Entrant:
                     start = application_competitive_name.find(' ') + 1
                     end = application_competitive_name.find('(') - 1
                     file_name = application_competitive_name[start:end]
-                    count = 1
-                    new_name = file_name
-                    while os.path.exists('applications\\' + new_name + '.pdf'):
-                        new_name = file_name + str(count)
-                        count += 1
-                    file_name = new_name
 
                     file_path = "applications\\{0}\\{1}".format(self.directory_name, file_name)
-
-                    if os.path.exists(file_path + '.pdf'):
-                        file_path += str(certificate.id)
 
                     print(application_competitive_name)
                     with open(file_path + ".pdf", 'wb') as file:
                         file.write(pdf)
+
+                    self.write_file("applications", file_name, )
 
     def get_trouble_status(self):
         if any([self.has_achievements,
@@ -452,7 +472,7 @@ class ExamResult:
 
 
 class Certificate:
-    def __init__(self, id, series, number, organization, issue_date, is_sge, entrant_id):
+    def __init__(self, id, series, number, organization, issue_date, is_sge, document_certificate_has_file, entrant_id):
         self.id = id
         self.series = series
         self.number = number
@@ -460,6 +480,7 @@ class Certificate:
         self.issue_date = issue_date
         # Среднее общее образование
         self.is_sge = is_sge
+        self.document_certificate_has_file = document_certificate_has_file
         self.entrant_id = entrant_id
 
 

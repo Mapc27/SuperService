@@ -77,6 +77,9 @@ entrant_application_info_url = url + 'api/applications/{}/info'
 # {} = document id
 entrant_others_doc_url = url + 'api/docs/{}/edit'
 
+# {} = document id
+entrant_others_download_url = url + 'api/docs/general/{}/file'
+
 # вкладка заявления
 # {} = entrant id
 entrant_applications_url = url + 'api/entrants/{}/applications'
