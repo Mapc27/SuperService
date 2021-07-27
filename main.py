@@ -156,23 +156,28 @@ class Entrant:
 
         new_name = directory_name
         count = 1
-        while os.path.exists("\\applications\\{}".format(new_name)) or os.path.exists("\\achievements\\{}"
+        while os.path.exists("applications\\{}".format(new_name)) or os.path.exists("achievements\\{}"
                                                                                               .format(new_name)):
             new_name = directory_name + "_" + str(count)
             count += 1
         self.directory_name = new_name
 
-        os.mkdir("achievements\\" + self.directory_name)
-        os.mkdir("applications\\" + self.directory_name)
+        if not os.path.exists("achievements\\" + self.directory_name):
+            os.mkdir("achievements\\" + self.directory_name)
+        if not os.path.exists("applications\\" + self.directory_name):
+            os.mkdir("applications\\" + self.directory_name)
 
     def write_file(self, folder_name, file_name, format_name, file):
+        file_name = file_name.replace(" ", "_")
         new_name = file_name
         count = 1
-        while os.path.exists("\\{0}\\{1}\\{2}".format(folder_name, self.directory_name, new_name + "." + format_name)):
+        while os.path.exists("{0}\\{1}\\{2}".format(folder_name, self.directory_name, new_name + "." + format_name)):
             new_name = file_name + "_" + str(count)
             count += 1
 
-        file_name = "\\" + folder_name + self.directory_name + "\\" + new_name + "." + format_name
+        file_name = folder_name + "\\" + self.directory_name + "\\" + new_name + "." + format_name
+
+        print("Writed", file_name)
 
         with open(file_name, 'wb') as f:
             f.write(file)
@@ -358,13 +363,8 @@ class Entrant:
             self.has_more_than_one_certificate = True
 
     def get_info_from_applications(self):
-        if self.directory_name is None:
-            directory_name = self.surname + '_' + self.name + '_' + self.patronymic
-        else:
-            directory_name = self.directory_name
-
         info = get_request(url=config.entrant_applications_url.format(self.id))['data']
-        print('============== ' + directory_name + ' ============')
+        print('============== ' + self.directory_name + ' ============')
         for app in info:
             application_id = app['id']
             application = get_request(url=config.entrant_application_main_url.format(application_id))['data']
@@ -430,13 +430,7 @@ class Entrant:
                     end = application_competitive_name.find('(') - 1
                     file_name = application_competitive_name[start:end]
 
-                    file_path = "applications\\{0}\\{1}".format(self.directory_name, file_name)
-
-                    print(application_competitive_name)
-                    with open(file_path + ".pdf", 'wb') as file:
-                        file.write(pdf)
-
-                    self.write_file("applications", file_name, )
+                    self.write_file("applications", file_name, "pdf", pdf)
 
     def get_trouble_status(self):
         if any([self.has_achievements,

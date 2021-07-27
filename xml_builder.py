@@ -1,4 +1,7 @@
+import os
+
 from lxml import etree
+import re
 import codecs
 
 
@@ -21,6 +24,8 @@ def create_xml(entrant):
     ps_name.text = entrant.name
     ps_surname = etree.SubElement(passport, "Surname")
     ps_surname.text = str(entrant.surname)
+    ps_patr = etree.SubElement(passport, "Patronymic")
+    ps_patr.text = entrant.patronymic
     ps_series = etree.SubElement(passport, "Series")
     ps_series.text = passports[0].series
     ps_number = etree.SubElement(passport, "Number")
@@ -29,11 +34,13 @@ def create_xml(entrant):
     ps_birthday.text = str(entrant.birthday)
     ps_uid = etree.SubElement(passport, "UID")
     ps_uid.text = str(passports[0].id)
+    ps_issue_date = etree.SubElement(passport, "IssueDate")
+    ps_issue_date.text = str(passports[0].issue_date.strftime("%d.%m.%Y"))
     ps_org = etree.SubElement(passport, "DocOrganisation")
     ps_org.text = passports[0].organization
 
     education_document = etree.SubElement(entrant_choice, "EducationDocument")
-    education_document.text = "Среднее общее образование"
+    # education_document.text = "Среднее общее образование"
     type = etree.SubElement(education_document, "Type")
     type.text = "Аттестат о среднем общем образовании"
     education_level = etree.SubElement(education_document, "EducationLevel")
@@ -41,7 +48,9 @@ def create_xml(entrant):
     series = etree.SubElement(education_document, "Series")
     if not certificates:
         return
-    series.text = certificates[0].series.replace("нет", "")
+    string = certificates[0].series.replace("нет", "")
+    res = re.sub('\\W', "", string)
+    series.text = res
     number = etree.SubElement(education_document, "Number")
     number.text = certificates[0].number
     organisation = etree.SubElement(education_document, "Organisation")
@@ -96,10 +105,13 @@ def create_xml(entrant):
     street = etree.SubElement(address, "Street")
     street.text = entrant.registration_address_street
     house = etree.SubElement(address, "House")
-    house.text = ""
+    house.text = entrant.fact_address_house
+    if entrant.fact_address_house is None:
+        house.text = ""
     apartment = etree.SubElement(address, "Apartment")
-
-    apartment.text = ""
+    apartment.text = entrant.fact_address_apartment
+    if entrant.fact_address_apartment is None:
+        apartment.text = ""
 
     service_applications = etree.SubElement(ser, "ServiceApplications")
     for i in applications:
@@ -138,5 +150,24 @@ def create_xml(entrant):
             priority.text = str(i.priority)
 
     # etree.ElementTree(package_data).write("xmls\\file.xml")
-    open("xmls\\%s.xml" % entrant.name, 'w', encoding="utf-8").write(
-        etree.tostring(package_data, encoding='utf-8').decode('utf-8'))
+    if not os.path.exists("xmls"):
+        os.mkdir("xmls")
+
+    file_name = entrant.surname + "_" + entrant.name + "_" + entrant.patronymic
+    format_name = "xml"
+    folder_name = "xmls"
+    file = etree.tostring(package_data, encoding='utf-8').decode('utf-8')
+
+    new_name = file_name
+    count = 1
+    while os.path.exists("{0}\\{1}".format(folder_name, new_name + "." + format_name)):
+        new_name = file_name + "_" + str(count)
+        count += 1
+
+    file_name = folder_name + "\\" + "\\" + new_name + "." + format_name
+
+    with open(file_name, 'w') as f:
+        f.write(file)
+
+    # open("xmls\\%s %s %s.xml" % (entrant.surname, entrant.name, entrant.patronymic), 'w', encoding="utf-8").write(
+    #     etree.tostring(package_data, encoding='utf-8').decode('utf-8'))
