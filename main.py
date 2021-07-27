@@ -1,6 +1,4 @@
-import os
 import json
-import re
 import time
 from datetime import datetime
 
@@ -43,39 +41,39 @@ def get_attrs_for_download(passport_id, certificate_id):
     }
 
 
+
+
+
 class SuperService:
     def __init__(self):
-        self.page = 1
-        self.pages_count = self.get_pages_count()
+        pass
 
-    def get_pages_count(self):
-        return get_request(url=config.entrants_list_url.format(self.page))['paginator']['count_page']
+    def get_entrant_for_id(self, id):
+        pass
 
-    def get_entrants_list(self):
-        entrants_list = get_request(url=config.entrants_list_url.format(self.page))['data']
-        self.page += 1
+    def get_entrants_list(self, page):
+        entrants_list = get_request(url=config.entrants_list_url.format(page))['data']
         return entrants_list
 
-    def main(self):
-        for entrant_ in self.get_entrants_list():
-            entrant = Entrant(entrant_['id'])
+    def main(self, entrant_id):
+        entrant = Entrant(entrant_id)
 
-            entrant.get_info_from_main()
-            entrant.get_info_from_identification()
-            entrant.get_info_from_contracts()
-            entrant.get_info_from_achievements()
-            entrant.get_info_from_others()
-            entrant.get_info_from_applications()
-            entrant.get_trouble_status()
+        entrant.get_info_from_main()
+        entrant.get_info_from_identification()
+        entrant.get_info_from_contracts()
+        entrant.get_info_from_achievements()
+        entrant.get_info_from_others()
+        entrant.get_info_from_applications()
+        entrant.get_trouble_status()
 
-            entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
+        entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
 
-            create_xml(entrant)
-            db_insertions.ins_pers(entrant)
-            db_insertions.ins_pass(entrant.passports, db_insertions.get_entrant_id(entrant))
-            db_insertions.ins_cert(entrant.certificates, db_insertions.get_entrant_id(entrant))
-            db_insertions.ins_address(entrant, db_insertions.get_entrant_id(entrant))
-            db_insertions.ins_apps(entrant.applications, db_insertions.get_entrant_id(entrant))
+        create_xml(entrant)
+        db_insertions.ins_pers(entrant)
+        db_insertions.ins_pass(entrant.passports, db_insertions.get_entrant_id(entrant))
+        db_insertions.ins_cert(entrant.certificates, db_insertions.get_entrant_id(entrant))
+        db_insertions.ins_address(entrant, db_insertions.get_entrant_id(entrant))
+        db_insertions.ins_apps(entrant.applications, db_insertions.get_entrant_id(entrant))
 
 
 class Entrant:
@@ -168,8 +166,8 @@ class Entrant:
             self.registration_address_street = info['registration_address']['street']
             self.registration_address_name_region = info['registration_address']['name_region']
 
-            self.registration_address_house =  info['registration_address']['house']
-            self.registration_address_apartment =  info['registration_address']['apartment']
+            self.registration_address_house = info['registration_address']['house']
+            self.registration_address_apartment = info['registration_address']['apartment']
 
         # fact address
         if info['fact_address'] is not None:
@@ -226,50 +224,6 @@ class Entrant:
         info = get_request(url=config.entrant_achievements_url.format(self.id))['data']
         if info:
             self.has_achievements = True
-        else:
-            return
-        directory_name = self.surname + '_' + self.name + '_' + self.patronymic
-
-        if not os.path.exists('achievements'):
-            os.mkdir('achievements')
-        new_name = directory_name
-        count = 1
-        while os.path.exists("achievements\\" + new_name):
-            new_name = directory_name + '_' + str(count)
-            count += 1
-        self.directory_name = new_name
-
-        os.mkdir("achievements\\" + self.directory_name)
-
-        for achievement_ in info:
-            achievement_id = achievement_['id']
-            achievement_name = achievement_['name']
-            achievement_uid_epgu = achievement_['uid_epgu']
-            achievement = Achievement(achievement_id, achievement_name, achievement_uid_epgu)
-
-            self.achievements.append(achievement)
-
-            headers = config.headers
-
-            headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-            headers['Accept-Language'] = 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3'
-
-            response = requests.get(url=config.entrant_achievements_download_url.format(self.id, achievement_id),
-                                    headers=headers)
-
-            file = response.content
-            headers = response.headers
-            content_type = re.findall(r'([a-z]{4,11}/[\w\+\-\.]+)', headers['Content-Type'])[0]
-            type = content_type.split('/')[-1]
-
-            file_name = achievement_name
-            count = 1
-            while os.path.exists('applications\\' + self.directory_name + file_name + '.' + type):
-                file_name = achievement_name + str(count)
-                count += 1
-
-            with open("achievements\\" + self.directory_name + '\\' + file_name + '.' + type, 'wb') as f:
-                f.write(file)
 
     def get_info_from_others(self):
         info = get_request(url=config.entrant_others_url.format(self.id))['data'][0]['docs']
@@ -320,24 +274,7 @@ class Entrant:
             self.has_more_than_one_certificate = True
 
     def get_info_from_applications(self):
-        if self.directory_name is None:
-            directory_name = self.surname + '_' + self.name + '_' + self.patronymic
-        else:
-            directory_name = self.directory_name
-
-        if not os.path.exists('applications'):
-            os.mkdir('applications')
-        new_name = directory_name
-        count = 1
-        while os.path.exists("applications\\" + new_name):
-            new_name = directory_name + '_' + str(count)
-            count += 1
-        self.directory_name = new_name
-
-        os.mkdir("applications\\" + self.directory_name)
-
         info = get_request(url=config.entrant_applications_url.format(self.id))['data']
-        print('============== ' + directory_name + ' ============')
         for app in info:
             application_id = app['id']
             application = get_request(url=config.entrant_application_main_url.format(application_id))['data']
@@ -393,30 +330,6 @@ class Entrant:
                                       application_competitive_name_education_level, exams)
 
             self.applications.append(application)
-
-            for passport in self.passports:
-                for certificate in self.certificates:
-                    pdf = post_request(url=config.entrant_competitive_download_url.format(application_id),
-                                       data=get_attrs_for_download(passport.id, certificate.id))
-
-                    start = application_competitive_name.find(' ') + 1
-                    end = application_competitive_name.find('(') - 1
-                    file_name = application_competitive_name[start:end]
-                    count = 1
-                    new_name = file_name
-                    while os.path.exists('applications\\' + new_name + '.pdf'):
-                        new_name = file_name + str(count)
-                        count += 1
-                    file_name = new_name
-
-                    file_path = "applications\\{0}\\{1}".format(self.directory_name, file_name)
-
-                    if os.path.exists(file_path + '.pdf'):
-                        file_path += str(certificate.id)
-
-                    print(application_competitive_name)
-                    with open(file_path + ".pdf", 'wb') as file:
-                        file.write(pdf)
 
     def get_trouble_status(self):
         if any([self.has_achievements,
@@ -503,4 +416,20 @@ class Achievement:
 
 if __name__ == '__main__':
     ss = SuperService()
-    ss.main()
+    print("[0] - скачивание списка")
+    print("[1] - скачивание абитуриента")
+    value = input("Ввод: ")
+    while value != "0" and value != "1":
+        value = input("Попробуйте ещё: ")
+    if value == "0":
+        page = input("Введите страницу: ")
+        while not page.isdigit():
+            page = input("Попробуйте ещё: ")
+        for entrant_ in ss.get_entrants_list(int(page)):
+            ss.main(entrant_['id'])
+    elif value == "1":
+        entrant_id = input("Введите entrant_id: ")
+        while not entrant_id.isdigit():
+            entrant_id = input("Попробуйте ещё: ")
+        ss.main(int(entrant_id))
+    print("Done")
