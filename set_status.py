@@ -42,3 +42,25 @@ def set_status(entrant_id):
             status = "in_competition"
             post_request(entrant_application_set_status_url.format(application_id),
                               data={"code": status})
+
+        elif app['id_status'] == 3:
+            status = "entrant_edit"
+            post_request(entrant_application_set_status_url.format(application_id),
+                         data={"code": status})
+
+            status = "new_cheking"
+            post_request(entrant_application_set_status_url.format(application_id),
+                         data={"code": status})
+
+            status = "in_competition"
+            post_request(entrant_application_set_status_url.format(application_id),
+                         data={"code": status})
+
+
+if __name__ == '__main__':
+    while True:
+        entrant_id_ = input('entrant_id: ')
+        while not entrant_id_.isdigit():
+            entrant_id_ = input('Try again, entrant_id: ')
+
+        set_status(entrant_id_)
