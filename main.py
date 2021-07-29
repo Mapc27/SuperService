@@ -294,6 +294,8 @@ class Entrant:
 
     def get_info_from_applications(self):
         info = get_request(url=config.entrant_applications_url.format(self.id))['data']
+        none_status = False
+        less_3_status = False
         for app in info:
             application_id = app['id']
             application = get_request(url=config.entrant_application_main_url.format(application_id))['data']
@@ -327,7 +329,6 @@ class Entrant:
             application_exams = get_request(url=config.entrant_application_exams.format(application_id))['data']
 
             exams = []
-            status = False
             for exam in application_exams:
                 if exam['app_entrance_test'] is not None:
                     exam_id = exam['id']
@@ -340,11 +341,9 @@ class Entrant:
                     exam_obj = Exam(exam_id, exam_result_value, exam_uid, exam_id_subject, exam_name_subject,
                                     exam_priority)
                     exams.append(exam_obj)
-                    if exam_result_value is None:
-                        status = True
-            if status:
-                print(Fore.RED + "ERROR with exams - {0} {1} {2}".format(self.surname, self.name, self.patronymic))
-                print(Style.RESET_ALL)
+                    none_status = True
+            if len(exams) < 3:
+                less_3_status = True
 
             application = Application(application_id, application_uid_epgu, application_registration_date,
                                       application_id_status, application_name_status,
@@ -355,6 +354,12 @@ class Entrant:
                                       application_competitive_name_education_level, exams)
 
             self.applications.append(application)
+        if not none_status:
+            print(Fore.RED + "ERROR with exams - {0} {1} {2}".format(self.surname, self.name, self.patronymic))
+            print(Style.RESET_ALL)
+        if less_3_status:
+            print(Fore.RED + 'ERROR len(exams) < 3')
+            print(Style.RESET_ALL)
 
     def get_trouble_status(self):
         if any([self.has_contracts,
