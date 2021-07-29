@@ -2,6 +2,8 @@ import os
 
 from lxml import etree
 import re
+import colorama
+from colorama import Fore
 
 
 def create_xml(entrant):
@@ -171,8 +173,6 @@ def create_xml(entrant):
 
     with open(file_name, 'w', encoding="utf-8") as f:
         f.write(file)
-
+    print(Fore.GREEN + file_name)
     # open("xmls\\%s %s %s.xml" % (entrant.surname, entrant.name, entrant.patronymic), 'w', encoding="utf-8").write(
     #     etree.tostring(package_data, encoding='utf-8').decode('utf-8'))
-
-
