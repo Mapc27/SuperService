@@ -83,8 +83,10 @@ class SuperService:
                     print('entrant.has_other_passport', '=', entrant.has_other_passport)
                     print('entrant.has_other_certificate', '=', entrant.has_other_certificate)
                     print('entrant.has_target_applications', '=', entrant.has_target_applications)
+                    print(Style.RESET_ALL)
                 else:
                     create_xml(entrant)
+                    need_set_status()
                 status_ = True
             except ConnectionRefusedError:
                 pass
@@ -345,6 +347,7 @@ class Entrant:
                         status = True
             if status:
                 print(Fore.RED + "ERROR with exams - {0} {1} {2}".format(self.surname, self.name, self.patronymic))
+                print(Style.RESET_ALL)
 
             application = Application(application_id, application_uid_epgu, application_registration_date,
                                       application_id_status, application_name_status,
@@ -503,7 +506,6 @@ if __name__ == '__main__':
             while not entrant_id.isdigit():
                 entrant_id = input("Попробуйте ещё: ")
             ss.main(int(entrant_id))
-            need_set_status()
         elif value == "2":
             entrant_id = input("Введите entrant_id: ")
             set_status(entrant_id)
@@ -523,7 +525,6 @@ if __name__ == '__main__':
 
             for i in range(start - 1, end):
                 ss.main(lst[i]['id'])
-                need_set_status()
         elif value == "4":
             lst = input("Введите номера страниц через пробел: ")
             lst_check(lst)
@@ -531,12 +532,10 @@ if __name__ == '__main__':
             for page in lst:
                 for entrant_ in ss.get_entrants_list(int(page)):
                     ss.main(entrant_['id'])
-                    need_set_status()
         elif value == "5":
             lst = input("Введите entrant_id через пробел: ")
             lst_check(lst)
             lst = [int(i) for i in lst.split(' ')]
             for entrant_id in lst:
                 ss.main(int(entrant_id))
-                need_set_status()
         print("Done")
