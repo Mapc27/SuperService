@@ -73,7 +73,7 @@ class SuperService:
                 entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
 
                 if entrant.has_trouble:
-                    print(Fore.RED + entrant.surname, entrant.name, entrant.patronymic)
+                    print(Fore.RED + str(entrant.id), entrant.surname, entrant.name, entrant.patronymic)
                     print("==============================================")
                     print('entrant.has_trouble', entrant.has_trouble)
                     print("==============================================")
@@ -208,32 +208,29 @@ class Entrant:
 
     def get_info_from_identification(self):
         info = get_request(config.entrant_identification_url.format(self.id))['data'][0]['docs']
-        passport_count = 0
         passport = None
 
         for doc in info:
             # если это паспорт гражданина РФ
             if doc['id_document_type'] == 1:
-                passport_count += 1
                 passport = doc
+                document_id = passport['id']
+
+                document = get_request(url=config.entrant_edit_url.format(passport['id']))['data']
+                doc_series = document['doc_series']
+                doc_number = document['doc_number']
+                doc_organization = document['doc_organization']
+                doc_subdivision_code = document['subdivision_code']
+                doc_issue_date = datetime.strptime(document['issue_date'], config.datetime_format)
+                entrant_id = document['id_entrant']
+
+                passport = Passport(document_id, doc_series, doc_number, doc_organization, doc_subdivision_code,
+                                    doc_issue_date, entrant_id)
+
+                self.passports.append(passport)
             else:
                 self.has_other_passport = True
 
-        if passport_count == 1:
-            document_id = passport['id']
-
-            document = get_request(url=config.entrant_edit_url.format(passport['id']))['data']
-            doc_series = document['doc_series']
-            doc_number = document['doc_number']
-            doc_organization = document['doc_organization']
-            doc_subdivision_code = document['subdivision_code']
-            doc_issue_date = datetime.strptime(document['issue_date'], config.datetime_format)
-            entrant_id = document['id_entrant']
-
-            passport = Passport(document_id, doc_series, doc_number, doc_organization, doc_subdivision_code,
-                                doc_issue_date, entrant_id)
-
-            self.passports.append(passport)
         if len(self.passports) > 1:
             self.has_more_than_one_passport = True
 
@@ -468,7 +465,7 @@ def end_check(start_, end_):
 def lst_check(lst_):
     for element_ in lst_.split(' '):
         if not element_.isdigit():
-            lst_ = input("Попробуйте ещё. Введите номера страниц через пробел")
+            lst_ = input("Попробуйте ещё. Введите номера страниц через пробел: ")
             lst_check(lst_)
 
 
