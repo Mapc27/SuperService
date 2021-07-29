@@ -70,7 +70,7 @@ class SuperService:
         entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
 
         if entrant.has_trouble:
-            print(Fore.RED + 'entrant.has_contracts', entrant.has_trouble)
+            print(Fore.RED + 'entrant.has_trouble', entrant.has_trouble)
             print(Fore.RED + "==============================================")
             print(Fore.RED + 'entrant.has_contracts', '=', entrant.has_contracts)
             print(Fore.RED + 'entrant.has_more_than_one_certificate', '=', entrant.has_more_than_one_certificate)
