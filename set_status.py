@@ -26,7 +26,7 @@ def post_request(url, data):
 
 def set_status(entrant_id):
     info = get_request(url=entrant_applications_url.format(entrant_id))['data']
-
+    print("In process ...")
     for app in info:
         application_id = app['id']
         if app['id_status'] == 2:

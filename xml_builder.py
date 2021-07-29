@@ -1,6 +1,7 @@
+import os
+
 from lxml import etree
 import re
-import codecs
 
 
 def create_xml(entrant):
@@ -25,7 +26,11 @@ def create_xml(entrant):
     ps_patr = etree.SubElement(passport, "Patronymic")
     ps_patr.text = entrant.patronymic
     ps_series = etree.SubElement(passport, "Series")
-    ps_series.text = passports[0].series
+    try:
+        ps_series.text = passports[0].series
+    except:
+        print("ERROR")
+        return
     ps_number = etree.SubElement(passport, "Number")
     ps_number.text = passports[0].number
     ps_birthday = etree.SubElement(passport, "Birthday")
@@ -46,7 +51,7 @@ def create_xml(entrant):
     series = etree.SubElement(education_document, "Series")
     if not certificates:
         return
-    string = certificates[0].series.replace("нет", "").replace()
+    string = certificates[0].series.replace("нет", "")
     res = re.sub('\\W', "", string)
     series.text = res
     number = etree.SubElement(education_document, "Number")
@@ -112,41 +117,62 @@ def create_xml(entrant):
         apartment.text = ""
 
     service_applications = etree.SubElement(ser, "ServiceApplications")
-    for i in applications:
+    for application in applications:
         app = etree.SubElement(service_applications, "Application")
         id_app = etree.SubElement(app, "ID")
-        id_app.text = str(i.id)
+        id_app.text = str(application.id)
         uid_epgu_app = etree.SubElement(app, "EpguUID")
-        uid_epgu_app.text = str(i.uid_epgu)
+        uid_epgu_app.text = str(application.uid_epgu)
         reg_date = etree.SubElement(app, "RegistrationDate")
-        reg_date.text = str(i.registration_date)
+        reg_date.text = str(application.registration_date)
         comp_id_edu_source = etree.SubElement(app, "CompetetiveIDEducationSource")
-        comp_id_edu_source.text = str(i.competitive_id_education_source)
+        comp_id_edu_source.text = str(application.competitive_id_education_source)
         comp_id = etree.SubElement(app, "CompetetiveID")
-        comp_id.text = str(i.competitive_id)
+        comp_id.text = str(application.competitive_id)
 
         comp_uid = etree.SubElement(app, "UIDGroup")
-        comp_uid.text = str(i.competitive_uid)
+        comp_uid.text = str(application.competitive_uid)
         comp_id_ed_lvl = etree.SubElement(app, "CompIDEduLvl")
-        comp_id_ed_lvl.text = str(i.competitive_id_education_level)
+        comp_id_ed_lvl.text = str(application.competitive_id_education_level)
 
         ege = etree.SubElement(app, "ege")
-        if i.exams is None:
+        if application.exams is []:
             continue
-        for i in i.exams:
+        for exam in application.exams:
             discipline = etree.SubElement(ege, "Discipline")
             dis_name = etree.SubElement(discipline, "Name")
-            sbjName = i.name_subject
+            sbjName = exam.name_subject
             sbjName.replace("Результат ЕГЭ", "")
             sbjName.replace("профильная", "")
             dis_name.text = sbjName.strip()
             subj_id = etree.SubElement(discipline, "SubjectID")
-            subj_id.text = str(i.id_subject)
+            subj_id.text = str(exam.id_subject)
             mark = etree.SubElement(discipline, "Mark")
-            mark.text = str(i.result_value)
+            mark.text = str(exam.result_value)
             priority = etree.SubElement(discipline, "Priority")
-            priority.text = str(i.priority)
+            priority.text = str(exam.priority)
 
     # etree.ElementTree(package_data).write("xmls\\file.xml")
-    open("xmls\\%s %s %s.xml" % (entrant.surname, entrant.name, entrant.patronymic), 'w', encoding="utf-8").write(
-        etree.tostring(package_data, encoding='utf-8').decode('utf-8'))
+    if not os.path.exists("xmls"):
+        os.mkdir("xmls")
+
+    file_name = entrant.surname + "_" + entrant.name + "_" + entrant.patronymic
+    format_name = "xml"
+    folder_name = "xmls"
+    file = etree.tostring(package_data, encoding='utf-8').decode('utf-8')
+
+    new_name = file_name
+    count = 1
+    while os.path.exists("{0}\\{1}".format(folder_name, new_name + "." + format_name)):
+        new_name = file_name + "_" + str(count)
+        count += 1
+
+    file_name = folder_name + "\\" + new_name + "." + format_name
+
+    with open(file_name, 'w', encoding="utf-8") as f:
+        f.write(file)
+
+    # open("xmls\\%s %s %s.xml" % (entrant.surname, entrant.name, entrant.patronymic), 'w', encoding="utf-8").write(
+    #     etree.tostring(package_data, encoding='utf-8').decode('utf-8'))
+
+

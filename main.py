@@ -5,8 +5,12 @@ from datetime import datetime
 import requests
 
 import config
-import db_insertions
+from set_status import set_status
 from xml_builder import create_xml
+
+import colorama
+from colorama import Fore
+colorama.init()
 
 
 def get_request(url):
@@ -41,9 +45,6 @@ def get_attrs_for_download(passport_id, certificate_id):
     }
 
 
-
-
-
 class SuperService:
     def __init__(self):
         pass
@@ -57,7 +58,7 @@ class SuperService:
 
     def main(self, entrant_id):
         entrant = Entrant(entrant_id)
-
+        print("In process ...")
         entrant.get_info_from_main()
         entrant.get_info_from_identification()
         entrant.get_info_from_contracts()
@@ -68,12 +69,23 @@ class SuperService:
 
         entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
 
-        create_xml(entrant)
-        db_insertions.ins_pers(entrant)
-        db_insertions.ins_pass(entrant.passports, db_insertions.get_entrant_id(entrant))
-        db_insertions.ins_cert(entrant.certificates, db_insertions.get_entrant_id(entrant))
-        db_insertions.ins_address(entrant, db_insertions.get_entrant_id(entrant))
-        db_insertions.ins_apps(entrant.applications, db_insertions.get_entrant_id(entrant))
+        if entrant.has_trouble:
+            print(Fore.RED + 'entrant.has_contracts', entrant.has_trouble)
+            print(Fore.RED + "==============================================")
+            print(Fore.RED + 'entrant.has_contracts', '=', entrant.has_contracts)
+            print(Fore.RED + 'entrant.has_more_than_one_certificate', '=', entrant.has_more_than_one_certificate)
+            print(Fore.RED + 'entrant.has_more_than_one_passport', '=', entrant.has_more_than_one_passport)
+            print(Fore.RED + 'entrant.has_other_passport', '=', entrant.has_other_passport)
+            print(Fore.RED + 'entrant.has_other_certificate', '=', entrant.has_other_certificate)
+            print(Fore.RED + 'entrant.has_target_applications', '=', entrant.has_target_applications)
+        else:
+            create_xml(entrant)
+
+        # db_insertions.ins_pers(entrant)
+        # db_insertions.ins_pass(entrant.passports, db_insertions.get_entrant_id(entrant))
+        # db_insertions.ins_cert(entrant.certificates, db_insertions.get_entrant_id(entrant))
+        # db_insertions.ins_address(entrant, db_insertions.get_entrant_id(entrant))
+        # db_insertions.ins_apps(entrant.applications, db_insertions.get_entrant_id(entrant))
 
 
 class Entrant:
@@ -308,6 +320,7 @@ class Entrant:
             application_exams = get_request(url=config.entrant_application_exams.format(application_id))['data']
 
             exams = []
+            status = False
             for exam in application_exams:
                 if exam['app_entrance_test'] is not None:
                     exam_id = exam['id']
@@ -320,6 +333,10 @@ class Entrant:
                     exam_obj = Exam(exam_id, exam_result_value, exam_uid, exam_id_subject, exam_name_subject,
                                     exam_priority)
                     exams.append(exam_obj)
+                    if exam_result_value is None:
+                        status = True
+            if status:
+                print(Fore.RED + "ERROR with exams - {0} {1} {2}".format(self.surname, self.name, self.patronymic))
 
             application = Application(application_id, application_uid_epgu, application_registration_date,
                                       application_id_status, application_name_status,
@@ -332,8 +349,7 @@ class Entrant:
             self.applications.append(application)
 
     def get_trouble_status(self):
-        if any([self.has_achievements,
-                self.has_contracts,
+        if any([self.has_contracts,
                 self.has_more_than_one_certificate,
                 self.has_more_than_one_passport,
                 self.has_other_passport,
@@ -414,22 +430,90 @@ class Achievement:
         self.achievement_uid_epgu = achievement_uid_epgu
 
 
+def start_check(start_):
+    while not start_.isdigit():
+        start_ = input("Попробуйте ещё [1, 20]: ")
+        while int(start_) > 20 or int(start_) < 1:
+            start_ = input("Попробуйте ещё [1, 20]: ")
+
+    while int(start_) > 20 or int(start_) < 1:
+        start_ = input("Попробуйте ещё [1, 20]: ")
+        while not start_.isdigit():
+            start_ = input("Попробуйте ещё [1, 20]: ")
+
+
+def end_check(start_, end_):
+    while not end_.isdigit():
+        end_ = input("Попробуйте ещё [{}, 20]: ".format(start_))
+        while int(end_) > 20 or int(end_) < start_:
+            end_ = input("Попробуйте ещё [{}, 20]: ".format(start_))
+
+    while int(end_) > 20 or int(end_) < start_:
+        end_ = input("Попробуйте ещё [{}, 20]: ".format(start_))
+        while not end_.isdigit():
+            end_ = input("Попробуйте ещё [{}, 20]: ".format(start_))
+
+
+def lst_check(lst_):
+    for element_ in lst_.split(' '):
+        if not element_.isdigit():
+            lst_ = input("Попробуйте ещё. Введите номера страниц через пробел")
+            lst_check(lst_)
+
+
 if __name__ == '__main__':
     ss = SuperService()
-    print("[0] - скачивание списка")
-    print("[1] - скачивание абитуриента")
-    value = input("Ввод: ")
-    while value != "0" and value != "1":
-        value = input("Попробуйте ещё: ")
-    if value == "0":
-        page = input("Введите страницу: ")
-        while not page.isdigit():
-            page = input("Попробуйте ещё: ")
-        for entrant_ in ss.get_entrants_list(int(page)):
-            ss.main(entrant_['id'])
-    elif value == "1":
-        entrant_id = input("Введите entrant_id: ")
-        while not entrant_id.isdigit():
-            entrant_id = input("Попробуйте ещё: ")
-        ss.main(int(entrant_id))
-    print("Done")
+    while True:
+        print("[0] - скачивание списка")
+        print("[1] - скачивание абитуриента")
+        print("[2] - set_status")
+        print("[3] - скачивание абитуриентов на странице")
+        print("[4] - скачивание списка страниц")
+        print("[5] - скачивание списка абитуриентов")
+        value = input("Ввод: ")
+        while value not in ['0', '1', '2', '3', '4', '5']:
+            value = input("Попробуйте ещё: ")
+        if value == "0":
+            page = input("Введите страницу: ")
+            while not page.isdigit():
+                page = input("Попробуйте ещё: ")
+            for entrant_ in ss.get_entrants_list(int(page)):
+                ss.main(entrant_['id'])
+        elif value == "1":
+            entrant_id = input("Введите entrant_id: ")
+            while not entrant_id.isdigit():
+                entrant_id = input("Попробуйте ещё: ")
+            ss.main(int(entrant_id))
+        elif value == "2":
+            entrant_id = input("Введите entrant_id: ")
+            set_status(entrant_id)
+        elif value == "3":
+            page = input("Введите страницу: ")
+            while not page.isdigit():
+                page = input("Попробуйте ещё: ")
+
+            start = input("Введите начало [1, 20]: ")
+            start_check(start)
+
+            end = input("Введите конец: [{}, 20]".format(start))
+            end_check(start, end)
+
+            start, end = int(start), int(end)
+            lst = ss.get_entrants_list(int(page))
+
+            for i in range(start - 1, end):
+                ss.main(lst[i]['id'])
+        elif value == "4":
+            lst = input("Введите номера страниц через пробел: ")
+            lst_check(lst)
+            lst = [int(i) for i in lst.split(' ')]
+            for page in lst:
+                for entrant_ in ss.get_entrants_list(int(page)):
+                    ss.main(entrant_['id'])
+        elif value == "5":
+            lst = input("Введите entrant_id через пробел: ")
+            lst_check(lst)
+            lst = [int(i) for i in lst.split(' ')]
+            for entrant_id in lst:
+                ss.main(int(entrant_id))
+        print("Done")
