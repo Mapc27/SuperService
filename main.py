@@ -70,14 +70,16 @@ class SuperService:
         entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
 
         if entrant.has_trouble:
-            print(Fore.RED + 'entrant.has_trouble', entrant.has_trouble)
-            print(Fore.RED + "==============================================")
-            print(Fore.RED + 'entrant.has_contracts', '=', entrant.has_contracts)
-            print(Fore.RED + 'entrant.has_more_than_one_certificate', '=', entrant.has_more_than_one_certificate)
-            print(Fore.RED + 'entrant.has_more_than_one_passport', '=', entrant.has_more_than_one_passport)
-            print(Fore.RED + 'entrant.has_other_passport', '=', entrant.has_other_passport)
-            print(Fore.RED + 'entrant.has_other_certificate', '=', entrant.has_other_certificate)
-            print(Fore.RED + 'entrant.has_target_applications', '=', entrant.has_target_applications)
+            print(Fore.RED + entrant.surname, entrant.name, entrant.patronymic)
+            print("==============================================")
+            print('entrant.has_trouble', entrant.has_trouble)
+            print("==============================================")
+            print('entrant.has_contracts', '=', entrant.has_contracts)
+            print('entrant.has_more_than_one_certificate', '=', entrant.has_more_than_one_certificate)
+            print('entrant.has_more_than_one_passport', '=', entrant.has_more_than_one_passport)
+            print('entrant.has_other_passport', '=', entrant.has_other_passport)
+            print('entrant.has_other_certificate', '=', entrant.has_other_certificate)
+            print('entrant.has_target_applications', '=', entrant.has_target_applications)
         else:
             create_xml(entrant)
 
