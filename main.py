@@ -9,7 +9,7 @@ from set_status import set_status
 from xml_builder import create_xml
 
 import colorama
-from colorama import Fore
+from colorama import Fore, Style
 colorama.init()
 
 
@@ -464,6 +464,7 @@ def lst_check(lst_):
 if __name__ == '__main__':
     ss = SuperService()
     while True:
+        print(Style.RESET_ALL)
         print("[0] - скачивание списка")
         print("[1] - скачивание абитуриента")
         print("[2] - set_status")
