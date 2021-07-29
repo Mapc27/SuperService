@@ -57,31 +57,37 @@ class SuperService:
         return entrants_list
 
     def main(self, entrant_id):
-        entrant = Entrant(entrant_id)
-        print("In process ...")
-        entrant.get_info_from_main()
-        entrant.get_info_from_identification()
-        entrant.get_info_from_contracts()
-        entrant.get_info_from_achievements()
-        entrant.get_info_from_others()
-        entrant.get_info_from_applications()
-        entrant.get_trouble_status()
+        status_ = False
+        while not status_:
+            try:
+                entrant = Entrant(entrant_id)
+                print("In process ...")
+                entrant.get_info_from_main()
+                entrant.get_info_from_identification()
+                entrant.get_info_from_contracts()
+                entrant.get_info_from_achievements()
+                entrant.get_info_from_others()
+                entrant.get_info_from_applications()
+                entrant.get_trouble_status()
 
-        entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
+                entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
 
-        if entrant.has_trouble:
-            print(Fore.RED + entrant.surname, entrant.name, entrant.patronymic)
-            print("==============================================")
-            print('entrant.has_trouble', entrant.has_trouble)
-            print("==============================================")
-            print('entrant.has_contracts', '=', entrant.has_contracts)
-            print('entrant.has_more_than_one_certificate', '=', entrant.has_more_than_one_certificate)
-            print('entrant.has_more_than_one_passport', '=', entrant.has_more_than_one_passport)
-            print('entrant.has_other_passport', '=', entrant.has_other_passport)
-            print('entrant.has_other_certificate', '=', entrant.has_other_certificate)
-            print('entrant.has_target_applications', '=', entrant.has_target_applications)
-        else:
-            create_xml(entrant)
+                if entrant.has_trouble:
+                    print(Fore.RED + entrant.surname, entrant.name, entrant.patronymic)
+                    print("==============================================")
+                    print('entrant.has_trouble', entrant.has_trouble)
+                    print("==============================================")
+                    print('entrant.has_contracts', '=', entrant.has_contracts)
+                    print('entrant.has_more_than_one_certificate', '=', entrant.has_more_than_one_certificate)
+                    print('entrant.has_more_than_one_passport', '=', entrant.has_more_than_one_passport)
+                    print('entrant.has_other_passport', '=', entrant.has_other_passport)
+                    print('entrant.has_other_certificate', '=', entrant.has_other_certificate)
+                    print('entrant.has_target_applications', '=', entrant.has_target_applications)
+                else:
+                    create_xml(entrant)
+                status_ = True
+            except ConnectionRefusedError:
+                pass
 
         # db_insertions.ins_pers(entrant)
         # db_insertions.ins_pass(entrant.passports, db_insertions.get_entrant_id(entrant))
@@ -463,6 +469,15 @@ def lst_check(lst_):
             lst_check(lst_)
 
 
+def need_set_status():
+    print("Set status?")
+    print("[0] - нет (просто нажми любую клавишу)")
+    print("[1] - да (['1', 'да', 'yes', 'ага'])")
+    response = input("Ввод: ")
+    if response.lower() in ['1', 'да', 'yes', 'ага']:
+        set_status(entrant_id)
+
+
 if __name__ == '__main__':
     ss = SuperService()
     while True:
@@ -482,11 +497,13 @@ if __name__ == '__main__':
                 page = input("Попробуйте ещё: ")
             for entrant_ in ss.get_entrants_list(int(page)):
                 ss.main(entrant_['id'])
+
         elif value == "1":
             entrant_id = input("Введите entrant_id: ")
             while not entrant_id.isdigit():
                 entrant_id = input("Попробуйте ещё: ")
             ss.main(int(entrant_id))
+            need_set_status()
         elif value == "2":
             entrant_id = input("Введите entrant_id: ")
             set_status(entrant_id)
@@ -506,6 +523,7 @@ if __name__ == '__main__':
 
             for i in range(start - 1, end):
                 ss.main(lst[i]['id'])
+                need_set_status()
         elif value == "4":
             lst = input("Введите номера страниц через пробел: ")
             lst_check(lst)
@@ -513,10 +531,12 @@ if __name__ == '__main__':
             for page in lst:
                 for entrant_ in ss.get_entrants_list(int(page)):
                     ss.main(entrant_['id'])
+                    need_set_status()
         elif value == "5":
             lst = input("Введите entrant_id через пробел: ")
             lst_check(lst)
             lst = [int(i) for i in lst.split(' ')]
             for entrant_id in lst:
                 ss.main(int(entrant_id))
+                need_set_status()
         print("Done")
