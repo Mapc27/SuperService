@@ -478,7 +478,7 @@ def lst_check(lst_):
         if not element_.isdigit():
             lst_ = input("Попробуйте ещё. Введите номера страниц через пробел: ")
             return lst_check(lst_)
-    return lst_.split(' ')
+    return set(lst_.split(' '))
 
 
 def need_set_status(entrant_id_):

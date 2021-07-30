@@ -62,7 +62,7 @@ def lst_check(lst_):
         if not element_.isdigit():
             lst_ = input("Попробуйте ещё. Введите entrant_id через пробел: ")
             return lst_check(lst_)
-    return lst_.split(' ')
+    return set(lst_.split(' '))
 
 
 if __name__ == '__main__':
