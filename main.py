@@ -75,6 +75,7 @@ class SuperService:
 
                 if entrant.has_trouble:
                     print(Fore.RED + str(entrant.id), entrant.surname, entrant.name, entrant.patronymic)
+                    print("http://10.3.60.2/cabinets/university/entrants/{}/docs/others".format(entrant.id))
                     print("==============================================")
                     print('entrant.has_trouble', entrant.has_trouble)
                     print("==============================================")
@@ -212,8 +213,6 @@ class Entrant:
 
     def get_info_from_identification(self):
         info = get_request(config.entrant_identification_url.format(self.id))['data'][0]['docs']
-        passport = None
-
         for doc in info:
             # если это паспорт гражданина РФ
             if doc['id_document_type'] == 1:

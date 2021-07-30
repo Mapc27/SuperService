@@ -174,7 +174,8 @@ def create_xml(entrant):
 
     with open(file_name, 'w', encoding="utf-8") as f:
         f.write(file)
-    print(Fore.GREEN + str(entrant.id), file_name)
+    print(Fore.GREEN + file_name)
+    print("http://10.3.60.2/cabinets/university/entrants/{}/docs/others".format(entrant.id))
     print(Style.RESET_ALL, end='')
     # open("xmls\\%s %s %s.xml" % (entrant.surname, entrant.name, entrant.patronymic), 'w', encoding="utf-8").write(
     #     etree.tostring(package_data, encoding='utf-8').decode('utf-8'))
