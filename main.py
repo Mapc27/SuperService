@@ -23,6 +23,7 @@ def decor(func):
             except (ConnectionRefusedError, requests.exceptions.ProxyError, MaxRetryError,
                     NewConnectionError, TimeoutError) as error:
                 print(Fore.RED + "Обрабатывается ошибка {}, не переживайте".format(error))
+
     return wrapper
 
 
@@ -96,8 +97,59 @@ class SuperService:
                     print('entrant.has_other_certificate', '=', entrant.has_other_certificate)
                     print('entrant.has_target_applications', '=', entrant.has_target_applications)
                     print(Style.RESET_ALL, end='')
+
+                    if not any([entrant.has_contracts, entrant.has_target_applications, entrant.has_other_certificate,
+                                entrant.has_other_passport]):
+                        if entrant.has_more_than_one_certificate:
+                            print("=" * 100)
+                            for certificate in entrant.certificates:
+                                print(Fore.YELLOW + 'certificate.id', '=', certificate.id)
+                                print('certificate.doc_checked', '=', certificate.doc_checked)
+                                print('certificate.series', '=', certificate.series)
+                                print('certificate.number', '=', certificate.number)
+                                print('certificate.organization', '=', certificate.organization)
+                                print('certificate.issue_date', '=', certificate.issue_date)
+                                print('certificate.is_sge', '=', certificate.is_sge)
+                                print(Style.RESET_ALL, end='')
+                                print("=" * 100)
+
+                            status_input = True
+                            while status_input:
+                                new_certificate_id = input("Аккуратно! Это поле практически не проверяется на ошибки."
+                                                           "\nВведите нужный id аттестата: ")
+                                for i in range(len(entrant.certificates)):
+                                    if str(entrant.certificates[i].id) == new_certificate_id:
+                                        entrant.certificates[i], entrant.certificates[0] = \
+                                            entrant.certificates[0], entrant.certificates[i]
+                                        status_input = False
+
+                        if entrant.has_more_than_one_passport:
+                            print("=" * 100)
+                            for passport in entrant.passports:
+                                print(Fore.LIGHTCYAN_EX + 'passport.id', '=', passport.id)
+                                print('passport.doc_checked', '=', passport.doc_checked)
+                                print('passport.series', '=', passport.series)
+                                print('passport.number', '=', passport.number)
+                                print('passport.organization', '=', passport.organization)
+                                print('passport.subdivision_code', '=', passport.subdivision_code)
+                                print('passport.issue_date', '=', passport.issue_date)
+                                print(Style.RESET_ALL, end='')
+                                print("=" * 100)
+
+                            status_input = True
+                            while status_input:
+                                new_passport_id = input("Аккуратно! Это поле практически не проверяется на ошибки."
+                                                        "\nВведите нужный id пасспорта: ")
+
+                                for i in range(len(entrant.passports)):
+                                    if str(entrant.passports[i].id) == new_passport_id:
+                                        entrant.passports[i], entrant.passports[0] = \
+                                            entrant.passports[0], entrant.passports[i]
+                                        status_input = False
+                        create_xml(entrant)
                 elif entrant.email is None:
-                    print('entrant.email', '=', 'None')
+                    print(Fore.RED + 'entrant.email', '=', 'None')
+                    print(str(entrant.id), entrant.surname, entrant.name, entrant.patronymic)
                 else:
                     create_xml(entrant)
                     if need:
@@ -230,6 +282,7 @@ class Entrant:
             if doc['id_document_type'] == 1:
                 passport = doc
                 document_id = passport['id']
+                document_checked = doc['checked']
 
                 document = get_request(url=config.entrant_edit_url.format(passport['id']))['data']
                 doc_series = document['doc_series']
@@ -240,7 +293,7 @@ class Entrant:
                 entrant_id = document['id_entrant']
 
                 passport = Passport(document_id, doc_series, doc_number, doc_organization, doc_subdivision_code,
-                                    doc_issue_date, entrant_id)
+                                    doc_issue_date, document_checked, entrant_id)
 
                 self.passports.append(passport)
             else:
@@ -283,6 +336,7 @@ class Entrant:
 
             elif doc['id_document_type'] == 7:
                 document_id = doc['id']
+                document_checked = doc['checked']
                 document = get_request(url=config.entrant_others_doc_url.format(document_id))['data']
                 document_certificate_series = document['doc_series']
                 document_certificate_number = document['doc_number']
@@ -298,7 +352,7 @@ class Entrant:
 
                 certificate = Certificate(document_id, document_certificate_series, document_certificate_number,
                                           document_certificate_org, document_certificate_issue_date,
-                                          document_certificate_is_sge, self.id)
+                                          document_certificate_is_sge, document_checked, self.id)
                 self.certificates.append(certificate)
 
             elif doc['id_document_type'] != 36:
@@ -387,14 +441,14 @@ class Entrant:
 
 
 class Passport:
-    def __init__(self, id, series, number, organization, subdivision_code, issue_date,
-                 entrant_id):
+    def __init__(self, id, series, number, organization, subdivision_code, issue_date, doc_checked, entrant_id):
         self.id = id
         self.series = series
         self.number = number
         self.organization = organization
         self.subdivision_code = subdivision_code
         self.issue_date = issue_date
+        self.doc_checked = doc_checked
         self.entrant_id = entrant_id
 
 
@@ -409,7 +463,7 @@ class ExamResult:
 
 
 class Certificate:
-    def __init__(self, id, series, number, organization, issue_date, is_sge, entrant_id):
+    def __init__(self, id, series, number, organization, issue_date, is_sge, doc_checked, entrant_id):
         self.id = id
         self.series = series
         self.number = number
@@ -417,6 +471,7 @@ class Certificate:
         self.issue_date = issue_date
         # Среднее общее образование
         self.is_sge = is_sge
+        self.doc_checked = doc_checked
         self.entrant_id = entrant_id
 
 
@@ -519,8 +574,8 @@ if __name__ == '__main__':
         while value not in ['0', '1', '2', '3', '4', '5']:
             value = input("Попробуйте ещё: ")
         if value == "2":
-            entrant_id = input("Введите entrant_id: ")
-            set_status(entrant_id)
+            ent_id = input("Введите entrant_id: ")
+            set_status(ent_id)
         elif value == "3":
             page = input("Введите страницу: ")
             while not page.isdigit():
@@ -541,13 +596,13 @@ if __name__ == '__main__':
             lst = input("Введите номера страниц через пробел: ")
             lst = lst_check(lst)
             for page in lst:
-                for entrant_ in ss.get_entrants_list(page):
-                    ss.main(entrant_['id'])
+                for ent_id in ss.get_entrants_list(page):
+                    ss.main(ent_id['id'])
         elif value == "1":
             lst = input("Введите entrant_id через пробел: ")
             lst = lst_check(lst)
-            for entrant_id in lst:
-                ss.main(entrant_id)
+            for ent_id in lst:
+                ss.main(ent_id)
                 print(Fore.BLUE + "===========================================================")
                 print(Style.RESET_ALL, end='')
         print("Done")
