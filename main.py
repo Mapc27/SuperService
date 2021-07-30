@@ -1,8 +1,9 @@
 import json
-import time
 from datetime import datetime
 
 import requests
+import urllib3
+from urllib3.exceptions import NewConnectionError, MaxRetryError
 
 import config
 from set_status import set_status
@@ -14,16 +15,25 @@ from colorama import Fore, Style
 colorama.init()
 
 
+def decor(func):
+    def wrapper(*args, **kwargs):
+        while True:
+            try:
+                return func(*args, **kwargs)
+            except (ConnectionRefusedError, requests.exceptions.ProxyError, MaxRetryError,
+                    NewConnectionError, TimeoutError) as error:
+                print(Fore.RED + "Обрабатывается ошибка {}, не переживайте".format(error))
+    return wrapper
+
+
+@decor
 def get_request(url):
     return json.loads(requests.get(url, headers=config.headers).text)
 
 
+@decor
 def post_request(url, data):
-    try:
-        return requests.post(url, headers=config.headers, json=data).content
-    except requests.exceptions.ProxyError:
-        time.sleep(5)
-        return requests.post(url, headers=config.headers, json=data).content
+    return requests.post(url, headers=config.headers, json=data).content
 
 
 def get_attrs_for_download(passport_id, certificate_id):
@@ -93,8 +103,10 @@ class SuperService:
                     if need:
                         need_set_status(entrant.id)
                 status_ = True
-            except ConnectionRefusedError:
-                pass
+            except (ConnectionRefusedError, requests.exceptions.ProxyError, urllib3.exceptions.MaxRetryError,
+                    urllib3.exceptions.NewConnectionError, TimeoutError):
+                print(Fore.RED + "Exception")
+                print(Style.RESET_ALL, end='')
 
         # db_insertions.ins_pers(entrant)
         # db_insertions.ins_pass(entrant.passports, db_insertions.get_entrant_id(entrant))

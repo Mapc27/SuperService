@@ -1,6 +1,8 @@
 import json
 
 import requests
+import urllib3
+from colorama import Fore
 
 headers = {
     'Accept': 'application/json, text/plain, */*',
@@ -16,10 +18,23 @@ entrant_applications_url = url + 'api/entrants/{}/applications'
 entrant_application_set_status_url = url + 'api/applications/{}/status/set'
 
 
+def decor(func):
+    def wrapper(*args, **kwargs):
+        while True:
+            try:
+                return func(*args, **kwargs)
+            except (ConnectionRefusedError, requests.exceptions.ProxyError, urllib3.exceptions.MaxRetryError,
+                    urllib3.exceptions.NewConnectionError, TimeoutError) as error:
+                print(Fore.RED + "Обрабатывается ошибка {}, не переживайте".format(error))
+    return wrapper
+
+
+@decor
 def get_request(url):
     return json.loads(requests.get(url, headers=headers).text)
 
 
+@decor
 def post_request(url, data):
     return requests.post(url, headers=headers, json=data).content
 
@@ -55,6 +70,7 @@ def set_status(entrant_id):
             status = "in_competition"
             post_request(entrant_application_set_status_url.format(application_id),
                          data={"code": status})
+    print("Done")
 
 
 def lst_check(lst_):
