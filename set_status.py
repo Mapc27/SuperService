@@ -55,3 +55,19 @@ def set_status(entrant_id):
             status = "in_competition"
             post_request(entrant_application_set_status_url.format(application_id),
                          data={"code": status})
+
+
+def lst_check(lst_):
+    for element_ in lst_.split(' '):
+        if not element_.isdigit():
+            lst_ = input("Попробуйте ещё. Введите entrant_id через пробел: ")
+            return lst_check(lst_)
+    return lst_.split(' ')
+
+
+if __name__ == '__main__':
+    while True:
+        entrant_id_lst = input('Введите entrant_id через пробел: ')
+        entrant_id_lst = lst_check(entrant_id_lst)
+        for entrant_id_ in entrant_id_lst:
+            set_status(entrant_id_)

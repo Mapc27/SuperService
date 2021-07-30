@@ -10,6 +10,7 @@ from xml_builder import create_xml
 
 import colorama
 from colorama import Fore, Style
+
 colorama.init()
 
 
@@ -83,10 +84,13 @@ class SuperService:
                     print('entrant.has_other_passport', '=', entrant.has_other_passport)
                     print('entrant.has_other_certificate', '=', entrant.has_other_certificate)
                     print('entrant.has_target_applications', '=', entrant.has_target_applications)
-                    print(Style.RESET_ALL)
+                    print(Style.RESET_ALL, end='')
+                elif entrant.email is None:
+                    print('entrant.email', '=', 'None')
                 else:
                     create_xml(entrant)
-                    need_set_status()
+                    if need:
+                        need_set_status(entrant.id)
                 status_ = True
             except ConnectionRefusedError:
                 pass
@@ -356,10 +360,10 @@ class Entrant:
             self.applications.append(application)
         if not none_status:
             print(Fore.RED + "ERROR with exams - {0} {1} {2}".format(self.surname, self.name, self.patronymic))
-            print(Style.RESET_ALL)
-        if less_3_status:
+            print(Style.RESET_ALL, end='')
+        elif less_3_status:
             print(Fore.RED + 'ERROR len(exams) < 3')
-            print(Style.RESET_ALL)
+            print(Style.RESET_ALL, end='')
 
     def get_trouble_status(self):
         if any([self.has_contracts,
@@ -453,6 +457,7 @@ def start_check(start_):
         start_ = input("Попробуйте ещё [1, 20]: ")
         while not start_.isdigit():
             start_ = input("Попробуйте ещё [1, 20]: ")
+    return start_
 
 
 def end_check(start_, end_):
@@ -465,50 +470,44 @@ def end_check(start_, end_):
         end_ = input("Попробуйте ещё [{}, 20]: ".format(start_))
         while not end_.isdigit():
             end_ = input("Попробуйте ещё [{}, 20]: ".format(start_))
+    return end_
 
 
 def lst_check(lst_):
     for element_ in lst_.split(' '):
         if not element_.isdigit():
             lst_ = input("Попробуйте ещё. Введите номера страниц через пробел: ")
-            lst_check(lst_)
+            return lst_check(lst_)
+    return lst_.split(' ')
 
 
-def need_set_status():
+def need_set_status(entrant_id_):
+    print("===========================================================")
     print("Set status?")
-    print("[0] - нет (просто нажми любую клавишу)")
+    print("[0] - нет (просто нажми Enter)")
     print("[1] - да (['1', 'да', 'yes', 'ага'])")
+    print("===========================================================")
     response = input("Ввод: ")
     if response.lower() in ['1', 'да', 'yes', 'ага']:
-        set_status(entrant_id)
+        set_status(entrant_id_)
 
 
 if __name__ == '__main__':
     ss = SuperService()
+    need = input("Предлагать set_status? \n    да - (['1', 'да', 'yes', 'ага']) \n    "
+                 "нет - (просто нажми Enter)\n")
     while True:
-        print(Style.RESET_ALL)
-        print("[0] - скачивание списка")
-        print("[1] - скачивание абитуриента")
+        print(Style.RESET_ALL, end='')
+        print("===========================================================")
+        print("[0] - скачивание списка страниц")
+        print("[1] - скачивание списка абитуриентов")
         print("[2] - set_status")
-        print("[3] - скачивание абитуриентов на странице")
-        print("[4] - скачивание списка страниц")
-        print("[5] - скачивание списка абитуриентов")
+        print("[3] - скачивание абитуриентов на странице [1, 20]")
+        print("===========================================================")
         value = input("Ввод: ")
         while value not in ['0', '1', '2', '3', '4', '5']:
             value = input("Попробуйте ещё: ")
-        if value == "0":
-            page = input("Введите страницу: ")
-            while not page.isdigit():
-                page = input("Попробуйте ещё: ")
-            for entrant_ in ss.get_entrants_list(int(page)):
-                ss.main(entrant_['id'])
-
-        elif value == "1":
-            entrant_id = input("Введите entrant_id: ")
-            while not entrant_id.isdigit():
-                entrant_id = input("Попробуйте ещё: ")
-            ss.main(int(entrant_id))
-        elif value == "2":
+        if value == "2":
             entrant_id = input("Введите entrant_id: ")
             set_status(entrant_id)
         elif value == "3":
@@ -517,27 +516,29 @@ if __name__ == '__main__':
                 page = input("Попробуйте ещё: ")
 
             start = input("Введите начало [1, 20]: ")
-            start_check(start)
+            start = start_check(start)
 
             end = input("Введите конец: [{}, 20]".format(start))
-            end_check(start, end)
+            start = end_check(start, end)
 
             start, end = int(start), int(end)
-            lst = ss.get_entrants_list(int(page))
+            lst = ss.get_entrants_list(page)
 
             for i in range(start - 1, end):
                 ss.main(lst[i]['id'])
-        elif value == "4":
+        elif value == "0":
             lst = input("Введите номера страниц через пробел: ")
-            lst_check(lst)
-            lst = [int(i) for i in lst.split(' ')]
+            lst = lst_check(lst)
             for page in lst:
-                for entrant_ in ss.get_entrants_list(int(page)):
+                for entrant_ in ss.get_entrants_list(page):
                     ss.main(entrant_['id'])
-        elif value == "5":
+        elif value == "1":
             lst = input("Введите entrant_id через пробел: ")
-            lst_check(lst)
-            lst = [int(i) for i in lst.split(' ')]
+            lst = lst_check(lst)
             for entrant_id in lst:
-                ss.main(int(entrant_id))
+                ss.main(entrant_id)
+                print(Fore.BLUE + "===========================================================")
+                print(Style.RESET_ALL, end='')
         print("Done")
+        print(Fore.BLUE + "===========================================================")
+        print(Style.RESET_ALL, end='')

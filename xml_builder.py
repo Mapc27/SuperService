@@ -32,7 +32,7 @@ def create_xml(entrant):
         ps_series.text = passports[0].series
     except:
         print(Fore.RED + "ERROR: ps_series.text = passports[0].series")
-        print(Style.RESET_ALL)
+        print(Style.RESET_ALL, end='')
         return
     ps_number = etree.SubElement(passport, "Number")
     ps_number.text = passports[0].number
@@ -175,6 +175,6 @@ def create_xml(entrant):
     with open(file_name, 'w', encoding="utf-8") as f:
         f.write(file)
     print(Fore.GREEN + str(entrant.id), file_name)
-    print(Style.RESET_ALL)
+    print(Style.RESET_ALL, end='')
     # open("xmls\\%s %s %s.xml" % (entrant.surname, entrant.name, entrant.patronymic), 'w', encoding="utf-8").write(
     #     etree.tostring(package_data, encoding='utf-8').decode('utf-8'))
