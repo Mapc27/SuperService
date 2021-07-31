@@ -41,7 +41,7 @@ def post_request(url, data):
 
 def set_status(entrant_id):
     info = get_request(url=entrant_applications_url.format(entrant_id))['data']
-    print("In process ...")
+    print("In process ...   ", end='')
     for app in info:
         application_id = app['id']
         if app['id_status'] == 2:
@@ -70,7 +70,7 @@ def set_status(entrant_id):
             status = "in_competition"
             post_request(entrant_application_set_status_url.format(application_id),
                          data={"code": status})
-    print("Done")
+    print("Done!")
 
 
 def lst_check(lst_):

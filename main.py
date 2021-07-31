@@ -69,102 +69,102 @@ class SuperService:
         return entrants_list
 
     def main(self, entrant_id):
-        status_ = False
-        while not status_:
-            try:
-                entrant = Entrant(entrant_id)
-                print("In process ...")
-                entrant.get_info_from_main()
-                entrant.get_info_from_identification()
-                entrant.get_info_from_contracts()
-                entrant.get_info_from_achievements()
-                entrant.get_info_from_others()
-                entrant.get_info_from_applications()
-                entrant.get_trouble_status()
+        entrant = Entrant(entrant_id)
+        print("In process ...")
+        entrant.get_info_from_main()
+        entrant.get_info_from_identification()
+        entrant.get_info_from_contracts()
+        entrant.get_info_from_achievements()
+        entrant.get_info_from_others()
+        entrant.get_info_from_applications()
+        entrant.get_trouble_status()
 
-                entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
+        entrant.birthday = entrant.birthday.strftime("%d.%m.%Y")
 
-                if entrant.has_trouble:
-                    print(Fore.RED + str(entrant.id), entrant.surname, entrant.name, entrant.patronymic)
-                    print("http://10.3.60.2/cabinets/university/entrants/{}/docs/others".format(entrant.id))
-                    print("==============================================")
-                    print('entrant.has_trouble', entrant.has_trouble)
-                    print("==============================================")
-                    print('entrant.has_contracts', '=', entrant.has_contracts)
-                    print('entrant.has_more_than_one_certificate', '=', entrant.has_more_than_one_certificate)
-                    print('entrant.has_more_than_one_passport', '=', entrant.has_more_than_one_passport)
-                    print('entrant.has_other_passport', '=', entrant.has_other_passport)
-                    print('entrant.has_other_certificate', '=', entrant.has_other_certificate)
-                    print('entrant.has_target_applications', '=', entrant.has_target_applications)
-                    print(Style.RESET_ALL, end='')
+        if entrant.has_trouble:
+            print(Fore.RED + str(entrant.id), entrant.surname, entrant.name, entrant.patronymic)
+            print("http://10.3.60.2/cabinets/university/entrants/{}/docs/others".format(entrant.id))
+            print("==============================================")
+            print('entrant.has_trouble', entrant.has_trouble)
+            print("==============================================")
+            print('entrant.has_contracts', '=', entrant.has_contracts)
+            print('entrant.has_more_than_one_certificate', '=', entrant.has_more_than_one_certificate)
+            print('entrant.has_more_than_one_passport', '=', entrant.has_more_than_one_passport)
+            print('entrant.has_other_passport', '=', entrant.has_other_passport)
+            print('entrant.has_other_certificate', '=', entrant.has_other_certificate)
+            print('entrant.has_target_applications', '=', entrant.has_target_applications)
+            print(Style.RESET_ALL, end='')
 
-                    if not any([entrant.has_contracts, entrant.has_target_applications, entrant.has_other_certificate,
-                                entrant.has_other_passport]):
-                        if entrant.has_more_than_one_certificate:
+            if not any([entrant.has_contracts, entrant.has_target_applications, entrant.has_other_certificate,
+                        entrant.has_other_passport]):
+                new_problem = False
+                if entrant.has_more_than_one_certificate:
+                    print("=" * 100)
+                    for certificate in entrant.certificates:
+                        print(Fore.YELLOW + 'certificate.id', '=', certificate.id)
+                        print('certificate.doc_checked', '=', certificate.doc_checked)
+                        print('certificate.series', '=', certificate.series)
+                        print('certificate.number', '=', certificate.number)
+                        print('certificate.organization', '=', certificate.organization)
+                        print('certificate.issue_date', '=', certificate.issue_date.strftime("%d.%m.%Y"))
+                        print('certificate.is_sge', '=', certificate.is_sge)
+                        print(Style.RESET_ALL, end='')
+                        print("=" * 100)
+
+                    status_input = True
+                    while status_input:
+                        new_certificate_id = input("Аккуратно! Это поле практически не проверяется на ошибки."
+                                                   "\nВведите нужный id аттестата либо нажмите Enter для отмены: ")
+                        if new_certificate_id in ['', ' ']:
+                            status_input = False
+                            new_problem = True
+                            break
+                        for i in range(len(entrant.certificates)):
+                            if str(entrant.certificates[i].id) == new_certificate_id:
+                                entrant.certificates[i], entrant.certificates[0] = \
+                                    entrant.certificates[0], entrant.certificates[i]
+                                status_input = False
+
+                if not new_problem:
+                    if entrant.has_more_than_one_passport:
+                        print("=" * 100)
+                        for passport in entrant.passports:
+                            print(Fore.LIGHTCYAN_EX + 'passport.id', '=', passport.id)
+                            print('passport.doc_checked', '=', passport.doc_checked)
+                            print('passport.series', '=', passport.series)
+                            print('passport.number', '=', passport.number)
+                            print('passport.organization', '=', passport.organization)
+                            print('passport.subdivision_code', '=', passport.subdivision_code)
+                            print('passport.issue_date', '=', passport.issue_date.strftime("%d.%m.%Y"))
+                            print(Style.RESET_ALL, end='')
                             print("=" * 100)
-                            for certificate in entrant.certificates:
-                                print(Fore.YELLOW + 'certificate.id', '=', certificate.id)
-                                print('certificate.doc_checked', '=', certificate.doc_checked)
-                                print('certificate.series', '=', certificate.series)
-                                print('certificate.number', '=', certificate.number)
-                                print('certificate.organization', '=', certificate.organization)
-                                print('certificate.issue_date', '=', certificate.issue_date)
-                                print('certificate.is_sge', '=', certificate.is_sge)
-                                print(Style.RESET_ALL, end='')
-                                print("=" * 100)
 
-                            status_input = True
-                            while status_input:
-                                new_certificate_id = input("Аккуратно! Это поле практически не проверяется на ошибки."
-                                                           "\nВведите нужный id аттестата: ")
-                                for i in range(len(entrant.certificates)):
-                                    if str(entrant.certificates[i].id) == new_certificate_id:
-                                        entrant.certificates[i], entrant.certificates[0] = \
-                                            entrant.certificates[0], entrant.certificates[i]
-                                        status_input = False
-
-                        if entrant.has_more_than_one_passport:
-                            print("=" * 100)
-                            for passport in entrant.passports:
-                                print(Fore.LIGHTCYAN_EX + 'passport.id', '=', passport.id)
-                                print('passport.doc_checked', '=', passport.doc_checked)
-                                print('passport.series', '=', passport.series)
-                                print('passport.number', '=', passport.number)
-                                print('passport.organization', '=', passport.organization)
-                                print('passport.subdivision_code', '=', passport.subdivision_code)
-                                print('passport.issue_date', '=', passport.issue_date)
-                                print(Style.RESET_ALL, end='')
-                                print("=" * 100)
-
-                            status_input = True
-                            while status_input:
-                                new_passport_id = input("Аккуратно! Это поле практически не проверяется на ошибки."
-                                                        "\nВведите нужный id пасспорта: ")
-
-                                for i in range(len(entrant.passports)):
-                                    if str(entrant.passports[i].id) == new_passport_id:
-                                        entrant.passports[i], entrant.passports[0] = \
-                                            entrant.passports[0], entrant.passports[i]
-                                        status_input = False
-                        create_xml(entrant)
-                elif entrant.email is None:
-                    print(Fore.RED + 'entrant.email', '=', 'None')
-                    print(str(entrant.id), entrant.surname, entrant.name, entrant.patronymic)
-                else:
+                        status_input = True
+                        while status_input:
+                            new_passport_id = input("Аккуратно! Это поле практически не проверяется на ошибки."
+                                                    "\nВведите нужный id пасспорта либо нажмите Enter для отмены: ")
+                            if new_passport_id in ['', ' ']:
+                                status_input = False
+                                new_problem = True
+                            for i in range(len(entrant.passports)):
+                                if str(entrant.passports[i].id) == new_passport_id:
+                                    entrant.passports[i], entrant.passports[0] = \
+                                        entrant.passports[0], entrant.passports[i]
+                                    status_input = False
+                if not new_problem:
                     create_xml(entrant)
                     if need:
                         need_set_status(entrant.id)
-                status_ = True
-            except (ConnectionRefusedError, requests.exceptions.ProxyError, urllib3.exceptions.MaxRetryError,
-                    urllib3.exceptions.NewConnectionError, TimeoutError):
-                print(Fore.RED + "Exception")
-                print(Style.RESET_ALL, end='')
-
-        # db_insertions.ins_pers(entrant)
-        # db_insertions.ins_pass(entrant.passports, db_insertions.get_entrant_id(entrant))
-        # db_insertions.ins_cert(entrant.certificates, db_insertions.get_entrant_id(entrant))
-        # db_insertions.ins_address(entrant, db_insertions.get_entrant_id(entrant))
-        # db_insertions.ins_apps(entrant.applications, db_insertions.get_entrant_id(entrant))
+        elif entrant.email is None:
+            print(Fore.RED + 'entrant.email', '=', entrant.email)
+            print(str(entrant.id), entrant.surname, entrant.name, entrant.patronymic)
+            create_xml(entrant)
+            if need:
+                need_set_status(entrant.id)
+        else:
+            create_xml(entrant)
+            if need:
+                need_set_status(entrant.id)
 
 
 class Entrant:
@@ -562,6 +562,11 @@ if __name__ == '__main__':
     ss = SuperService()
     need = input("Предлагать set_status? \n    да - (['1', 'да', 'yes', 'ага']) \n    "
                  "нет - (просто нажми Enter)\n")
+    if need in ['1', 'да', 'yes', 'ага']:
+        need = True
+    else:
+        need = False
+
     while True:
         print(Style.RESET_ALL, end='')
         print("===========================================================")
