@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 
 headers = {
     'Accept': 'application/json, text/plain, */*',
@@ -21,6 +21,7 @@ if DEBUG:
 
 # 	"Аттестат о среднем (полном) общем образовании" id = 7
 entrants_list_url = url + 'api/entrants/list?page={}&limit=20'
+entrants_list_url_100 = url + 'api/entrants/list?page={}&limit=100'
 
 # страница абитуриента
 # {} = entrant id
