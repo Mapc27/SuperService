@@ -21,7 +21,6 @@ if DEBUG:
 
 # 	"Аттестат о среднем (полном) общем образовании" id = 7
 entrants_list_url = url + 'api/entrants/list?page={}&limit=20'
-entrants_list_url_100 = url + 'api/entrants/list?page={}&limit=100'
 
 # страница абитуриента
 # {} = entrant id
@@ -236,3 +235,6 @@ status_data = {
         }
       ]
 }
+
+accept_url = url + 'api/applications/list?page={}&limit={}&filter_status=9'
+recall_url = url + 'api/applications/list?page=1&limit=20&filter_status=13'

@@ -35,8 +35,8 @@ if __name__ == '__main__':
     page = 1
     limit = 20
     timeout = 600
-    if os.path.exists('table.xlsx'):
-        wb = openpyxl.load_workbook('table.xlsx')
+    if os.path.exists('table_recall.xlsx'):
+        wb = openpyxl.load_workbook('table_recall.xlsx')
         ws = wb.active
     else:
         wb = openpyxl.Workbook()
@@ -48,10 +48,10 @@ if __name__ == '__main__':
             element.fill = fill_header
     while True:
         was_print = False
-        response = get_request(config.accept_url.format(page, limit))
+        response = get_request(config.recall_url.format(page, limit))
         count_page = response['paginator']['count_page']
         for page in range(1, count_page + 1):
-            response = get_request(config.accept_url.format(page, limit))
+            response = get_request(config.recall_url.format(page, limit))
             for app in response['data']:
                 need_append = True
                 for row in ws:
@@ -72,7 +72,7 @@ if __name__ == '__main__':
                     was_print = True
         status = True
         counter = 1
-        file_name = 'table'
+        file_name = 'table_recall'
         new_name = file_name
         while status:
             try:
@@ -81,17 +81,17 @@ if __name__ == '__main__':
             except PermissionError:
                 new_name = file_name + '_' + str(counter)
 
-        wb.save('table.xlsx')
+        wb.save('table_recall.xlsx')
         if not was_print:
             print(Style.RESET_ALL)
-            print("Новых согласий нет")
+            print("Новых отзывов согласий нет")
         for i in range(0, timeout + 1):
             style = Fore.GREEN
             if timeout - i < timeout // 3:
                 style = Fore.RED
             elif timeout - i < timeout // 3 * 2:
                 style = Fore.YELLOW
-            print(style + '\rУ тебя есть {}s, чтобы посмотреть файл table.xlsx'.format(timeout - i), end='', flush=True)
+            print(style + '\rУ тебя есть {}s, чтобы посмотреть файл table_recall.xlsx'.format(timeout - i), end='', flush=True)
             time.sleep(1)
         print()
         print(Fore.LIGHTCYAN_EX + '=' * 100)
