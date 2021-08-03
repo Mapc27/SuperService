@@ -67,7 +67,7 @@ if __name__ == '__main__':
                                app['name_status'], app['education_level'], app['id']])
                     for element in ws[ws.max_row]:
                         element.fill = fill
-                    print(Fore.GREEN + '', is_target, app['entrant_fullname'], href, app['name_competitive_group'],
+                    print(Fore.GREEN + str(is_target), app['entrant_fullname'], href, app['name_competitive_group'],
                           app['name_status'], app['education_level'], app['id'])
                     was_print = True
         status = True
