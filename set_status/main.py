@@ -2,7 +2,7 @@ from datetime import datetime
 from multiprocessing import Process
 
 from config import HEADERS, COOKIE_DICT
-from general import SuperService
+from general import SuperService, TooManyApplicationsFoundException
 
 
 class SuperServiceStatus(SuperService):
@@ -31,9 +31,10 @@ class SuperServiceStatus(SuperService):
             print(f"{i+1} of {len_rows}")
             try:
                 self.process_application(rows[i])
-            except Exception as e:
-                print(e)
+            except Exception as exception:
+                print(exception)
                 rows[i][2].value = "Outer Exception"
+                raise exception
 
         print(f"Saving file {file_name}")
         excel_file.save(file_name)
@@ -46,6 +47,8 @@ class SuperServiceStatus(SuperService):
         if not isinstance(app_uid, int):
             if not app_uid.isdigit():
                 return
+        else:
+            app_uid = str(app_uid)
 
         assert int(institute_type) in [1, 2, 3]
 
@@ -60,7 +63,10 @@ class SuperServiceStatus(SuperService):
                 headers=headers
             )
             app_id = app['id']
-        except TypeError:
+        except TooManyApplicationsFoundException as exception:
+            empty_cell.value = "Количество заявлений" + str(exception)
+            return
+        except (TypeError, IndexError):
             empty_cell.value = "app_id not found"
             return
 
@@ -71,7 +77,15 @@ class SuperServiceStatus(SuperService):
         print("app_uid =", app_uid, "|", "app_id =", app_id)
 
         if app['id_status'] == 4:
-            self.general_methods.set_status_in_competition(app_id, headers)
+            self.general_methods.set_status_service_denied(app_id, headers)
+            app = self.general_methods.get_app_from_uid(
+                app_uid=app_uid,
+                headers=headers
+            )
+            print('Set status')
+
+        elif app['id_status'] == 8:
+            self.general_methods.set_status_out_competition(app_id, headers)
             app = self.general_methods.get_app_from_uid(
                 app_uid=app_uid,
                 headers=headers
@@ -83,5 +97,5 @@ class SuperServiceStatus(SuperService):
 
 if __name__ == '__main__':
     start_date = datetime.now()
-    SuperServiceStatus(city_name='kazan', process_number=1).main()
+    SuperServiceStatus(city_name='kazan', process_number=1, result_filename="не_прошёл_по_конкурсу").main()
     print("Time:", datetime.now() - start_date)

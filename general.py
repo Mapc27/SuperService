@@ -182,9 +182,15 @@ class GeneralMethods:
             except IndexError:
                 return
 
+        app_list = []
         for app in apps:
             if str(app_uid) in [str(app['app_number']), str(app['uid_epgu'])]:
-                return app
+                app_list.append(app)
+
+        if len(app_list) > 1:
+            raise TooManyApplicationsFoundException("len(app_list) =", len(app_list))
+
+        return app_list[0]
 
     def set_status_in_competition(self, application_id, headers=None):
         status = "in_competition"
@@ -200,12 +206,41 @@ class GeneralMethods:
             headers=headers
         )
 
+    def set_status_out_competition(self, application_id, headers=None):
+        status = "out_competition"
+        notification = {
+            "id_template": 41,
+            "comment": None,
+            "id_notices_types": 9
+        }
+        status_comment = None
+        return self.post_request(
+            ENTRANT_APPLICATION_SET_STATUS_URL.format(application_id),
+            data={"code": status, "notification": notification, "status_comment": status_comment},
+            headers=headers
+        )
+
+    def set_status_service_denied(self, application_id, headers=None):
+        status = "service_denied"
+        notification = {
+            "id_template": 41,
+            "comment": None,
+            "id_notices_types": 9
+        }
+        status_comment = None
+        return self.post_request(
+            ENTRANT_APPLICATION_SET_STATUS_URL.format(application_id),
+            data={"code": status, "notification": notification, "status_comment": status_comment},
+            headers=headers
+        )
+
 
 class SuperService:
-    def __init__(self, city_name, process_number):
+    def __init__(self, city_name, process_number, result_filename=None):
         self.general_methods = GeneralMethods(city_name)
         self.city_name = city_name
         self.process_number = process_number
+        self.result_filename = result_filename
 
     @staticmethod
     def get_data_from_file(file_name, start_letter, end_letter) -> list:
@@ -243,7 +278,8 @@ class SuperService:
             for row in sheet:
                 ws.append([cell.value for cell in row])
             os.remove(file_name)
-        wb.save(f"{self.city_name}_result.xlsx")
+        result_filename = self.result_filename + ".xlsx" if self.result_filename else f"{self.city_name}_result.xlsx"
+        wb.save(result_filename)
 
     @abstractmethod
     def main(self):
@@ -263,4 +299,8 @@ class ResponseDataNotAloneException(BaseException):
 
 
 class SetAgreedException(BaseException):
+    pass
+
+
+class TooManyApplicationsFoundException(BaseException):
     pass

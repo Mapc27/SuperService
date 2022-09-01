@@ -6,8 +6,8 @@ from general import SetAgreedException, SuperService
 
 
 class SuperServiceAgreed(SuperService):
-    def __init__(self, city_name, process_number, agreed):
-        super().__init__(city_name, process_number)
+    def __init__(self, city_name, process_number, agreed, result_filename=None):
+        super().__init__(city_name, process_number, result_filename)
         self.agreed = agreed
 
     def main(self):
@@ -86,5 +86,5 @@ class SuperServiceAgreed(SuperService):
 
 if __name__ == '__main__':
     start_date = datetime.now()
-    SuperServiceAgreed(city_name='kazan', process_number=5, agreed=False).main()
+    SuperServiceAgreed(city_name='kazan', process_number=10, agreed=True, result_filename="согласия").main()
     print("Time:",  datetime.now() - start_date)
