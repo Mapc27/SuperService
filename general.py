@@ -234,6 +234,16 @@ class GeneralMethods:
             headers=headers
         )
 
+    def set_status_enrolled(self, application_id, headers=None):
+        status = "enrolled"
+        notification = None
+        status_comment = None
+        return self.post_request(
+            ENTRANT_APPLICATION_SET_STATUS_URL.format(application_id),
+            data={"code": status, "notification": notification, "status_comment": status_comment},
+            headers=headers
+        )
+
 
 class SuperService:
     def __init__(self, city_name, process_number, result_filename=None):

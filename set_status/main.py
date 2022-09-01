@@ -92,6 +92,14 @@ class SuperServiceStatus(SuperService):
             )
             print('Set status')
 
+        elif app['id_status'] == 11:
+            self.general_methods.set_status_enrolled(app_id, headers)
+            app = self.general_methods.get_app_from_uid(
+                app_uid=app_uid,
+                headers=headers
+            )
+            print('Set status')
+
         empty_cell.value = app['id_status']
 
 
