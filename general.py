@@ -210,7 +210,7 @@ class GeneralMethods:
         status = "out_competition"
         notification = {
             "id_template": 41,
-            "comment": None,
+            "comment": "Поступающий не прошёл по конкурсу",
             "id_notices_types": 9
         }
         status_comment = None
